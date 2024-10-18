@@ -19,10 +19,10 @@ In your `mix.exs`:
 ```elixir
 defp deps do
   [
-    # from hex.pm
-    {:thumbtack, "~> 0.0.1"},
+    # from hex.pm (not published yet)
+    # {:thumbtack, "~> 0.0.1"},
     # from github
-    {:thumbtack, github: "code87/thumbtack"},
+    {:thumbtack, github: "code87/thumbtack", ref: "v0.0.1"},
     # local dev
     {:thumbtack, in_umbrella: true}
   ]
