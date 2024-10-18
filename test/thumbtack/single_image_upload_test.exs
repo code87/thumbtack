@@ -13,9 +13,7 @@ defmodule Thumbtack.SingleImageUploadTest do
       schema: "user_photos"
 
     @impl true
-    def get_path(user_id, photo_id, args) do
-      style = Keyword.fetch!(args, :style)
-
+    def get_path(user_id, photo_id, %{style: style}) do
       "/#{user_id}/#{photo_id}-#{style}.jpg"
     end
 
@@ -53,7 +51,7 @@ defmodule Thumbtack.SingleImageUploadTest do
       {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
 
       assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-thumb.jpg" ==
-               ImageUpload.get_url(UserPhoto, user, style: :thumb)
+               ImageUpload.get_url(UserPhoto, user, %{style: :thumb})
     end
 
     test "default style if original", %{user: user} do

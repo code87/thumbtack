@@ -129,7 +129,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
 
   def get_or_create_image_upload(%__MODULE__{} = uploader) do
     %{module: module, owner: owner, index: index} = uploader
-    %__MODULE__{uploader | image_upload: module.get_or_create_image_upload(owner, index: index)}
+    %__MODULE__{uploader | image_upload: module.get_or_create_image_upload(owner, %{index: index})}
   end
 
   def get_or_create_image_upload({:error, term, uploader}), do: {:error, term, uploader}
@@ -150,7 +150,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
       style_state = Map.get(state, style)
       %{path: path} = style_state
 
-      dest_path = module.get_path(owner_id, image_upload_id, index: index, style: style)
+      dest_path = module.get_path(owner_id, image_upload_id, %{index: index, style: style})
 
       case Thumbtack.storage().put(path, dest_path) do
         {:ok, url} ->

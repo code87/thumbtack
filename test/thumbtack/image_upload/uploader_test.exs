@@ -17,9 +17,7 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
       schema: "user_photos"
 
     @impl true
-    def get_path(user_id, photo_id, args) do
-      style = Keyword.fetch!(args, :style)
-
+    def get_path(user_id, photo_id, %{style: style}) do
       "/#{user_id}/#{photo_id}-#{style}.jpg"
     end
 

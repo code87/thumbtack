@@ -60,7 +60,7 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "creates image upload for a given index", %{album: album} do
-      assert {:ok, %AlbumPhoto{index_number: 1}} = AlbumPhoto.create_image_upload(album, index: 1)
+      assert {:ok, %AlbumPhoto{index_number: 1}} = AlbumPhoto.create_image_upload(album, %{index: 1})
     end
 
     test "default index is 0; accepts owner id", %{album: album} do
@@ -69,7 +69,7 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     end
 
     test "validates index", %{album: album} do
-      assert {:error, _changeset} = AlbumPhoto.create_image_upload(album, index: 3)
+      assert {:error, _changeset} = AlbumPhoto.create_image_upload(album, %{index: 3})
     end
   end
 
@@ -77,16 +77,16 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "returns image upload for a given index", %{album: album} do
-      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, index: 1)
+      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, %{index: 1})
 
       assert %AlbumPhoto{
                id: ^image_upload_id,
                index_number: 1
-             } = AlbumPhoto.get_image_upload(album, index: 1)
+             } = AlbumPhoto.get_image_upload(album, %{index: 1})
     end
 
     test "returns nil if image upload does not exist for a given owner", %{album: album} do
-      assert is_nil(AlbumPhoto.get_image_upload(album, index: 1))
+      assert is_nil(AlbumPhoto.get_image_upload(album, %{index: 1}))
     end
 
     test "default index is 0", %{album: album} do
@@ -94,8 +94,8 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     end
 
     test "returns nil if index is out of range", %{album: album} do
-      assert is_nil(AlbumPhoto.get_image_upload(album, index: -1))
-      assert is_nil(AlbumPhoto.get_image_upload(album, index: 3))
+      assert is_nil(AlbumPhoto.get_image_upload(album, %{index: -1}))
+      assert is_nil(AlbumPhoto.get_image_upload(album, %{index: 3}))
     end
   end
 
@@ -103,15 +103,15 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "returns existing image upload for a given index", %{album: album} do
-      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, index: 1)
+      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, %{index: 1})
 
       assert %AlbumPhoto{
                id: ^image_upload_id
-             } = AlbumPhoto.get_or_create_image_upload(album, index: 1)
+             } = AlbumPhoto.get_or_create_image_upload(album, %{index: 1})
     end
 
     test "default index is 0", %{album: album} do
-      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, index: 0)
+      {:ok, %AlbumPhoto{id: image_upload_id}} = AlbumPhoto.create_image_upload(album, %{index: 0})
 
       assert %AlbumPhoto{
                id: ^image_upload_id,
@@ -121,7 +121,7 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
 
     test "creates new image upload, if one does not exist; accepts owner id", %{album: album} do
       %{id: album_id} = album
-      assert %AlbumPhoto{index_number: 2} = AlbumPhoto.get_or_create_image_upload(album_id, index: 2)
+      assert %AlbumPhoto{index_number: 2} = AlbumPhoto.get_or_create_image_upload(album_id, %{index: 2})
     end
   end
 
@@ -129,11 +129,11 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "deletes image upload (index not needed)", %{album: album} do
-      {:ok, %{id: image_upload_id} = image_upload} = AlbumPhoto.create_image_upload(album, index: 1)
+      {:ok, %{id: image_upload_id} = image_upload} = AlbumPhoto.create_image_upload(album, %{index: 1})
 
       assert {:ok, %AlbumPhoto{id: ^image_upload_id}} = AlbumPhoto.delete_image_upload(image_upload)
 
-      refute AlbumPhoto.get_image_upload(album, index: 1)
+      refute AlbumPhoto.get_image_upload(album, %{index: 1})
     end
   end
 end

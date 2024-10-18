@@ -49,9 +49,7 @@ defmodule MyApp.UserPhoto do
 
   # you must implement this callback
   @impl true
-  def get_path(user_id, photo_id, args \\ [style: :original]) do
-    style = Keyword.fetch!(args, :style)
-
+  def get_path(user_id, photo_id, %{style: style} = _args) do
     "/accounts/users/#{user_id}/#{photo_id}-#{style}.jpg"
   end
 
@@ -105,7 +103,7 @@ defmodule MyApp.Accounts do
   end
 
   def get_user_photo_url(user_or_id, style \\ :original) do
-    UserPhoto.get_url(user_or_id, style: style)
+    UserPhoto.get_url(user_or_id, %{style: style})
   end
 
   def delete_user_photo(%User{} = user) do
