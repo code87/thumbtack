@@ -115,9 +115,9 @@ defmodule Thumbtack.ImageUpload do
         ) ::
           upload_result()
   @doc false
-  def upload(module, owner_or_id, src_path, args \\ %{}) do
+  def upload(module, owner_or_id, src_path, args) do
     Thumbtack.repo().transaction(fn ->
-      index = Map.get(args, :index, 0)
+      index = Enum.into(args, %{}) |> Map.get(:index, 0)
 
       Uploader.new(
         module: module,
@@ -149,7 +149,7 @@ defmodule Thumbtack.ImageUpload do
 
   @spec get_url(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) :: String.t()
   @doc false
-  def get_url(module, owner_or_id, args \\ %{})
+  def get_url(module, owner_or_id, args)
 
   def get_url(module, %{id: owner_id} = owner, args) when is_struct(owner) do
     get_url(module, owner_id, args)
@@ -173,7 +173,7 @@ defmodule Thumbtack.ImageUpload do
   @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   @doc false
-  def delete(module, owner_or_id, args \\ %{})
+  def delete(module, owner_or_id, args)
 
   def delete(module, %{id: owner_id} = owner, args) when is_struct(owner) do
     delete(module, owner_id, args)
@@ -189,10 +189,12 @@ defmodule Thumbtack.ImageUpload do
     end
   end
 
-  defp fetch_options(%{} = args) do
+  defp fetch_options(args) do
+    args_map = Enum.into(args, %{})
+
     %{
-      index: Map.get(args, :index, 0),
-      style: Map.get(args, :style, :original)
+      index: Map.get(args_map, :index, 0),
+      style: Map.get(args_map, :style, :original)
     }
   end
 
@@ -204,22 +206,22 @@ defmodule Thumbtack.ImageUpload do
     quote do
       use Thumbtack.ImageUpload.Schema, unquote(opts)
 
-      @spec upload(owner :: struct() | :id, src_path :: String.t(), args :: map()) ::
+      @spec upload(owner :: struct() | :id, src_path :: String.t(), args :: map() | keyword()) ::
               {:ok, image_upload :: struct(), urls :: %{atom() => String.t()}} | {:error, term()}
       @doc """
       """
       def upload(owner, src_path, args \\ %{}) do
-        Thumbtack.ImageUpload.upload(__MODULE__, owner, src_path)
+        Thumbtack.ImageUpload.upload(__MODULE__, owner, src_path, args)
       end
 
-      @spec get_url(owner :: struct() | :id, args :: map()) :: String.t() | nil
+      @spec get_url(owner :: struct() | :id, args :: map() | keyword()) :: String.t() | nil
       @doc """
       """
       def get_url(owner, args \\ %{}) do
         Thumbtack.ImageUpload.get_url(__MODULE__, owner, args)
       end
 
-      @spec delete(owner :: struct() | :id, args :: map()) ::
+      @spec delete(owner :: struct() | :id, args :: map() | keyword()) ::
               {:ok, struct()} | {:error, Ecto.Changeset.t()}
       @doc """
       """

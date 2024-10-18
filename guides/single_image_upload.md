@@ -103,7 +103,7 @@ defmodule MyApp.Accounts do
   end
 
   def get_user_photo_url(user_or_id, style \\ :original) do
-    UserPhoto.get_url(user_or_id, %{style: style})
+    UserPhoto.get_url(user_or_id, style: style)
   end
 
   def delete_user_photo(%User{} = user) do

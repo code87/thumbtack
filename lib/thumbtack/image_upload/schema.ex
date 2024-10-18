@@ -4,7 +4,7 @@ defmodule Thumbtack.ImageUpload.Schema do
   @max_images_limit 10_000
 
   @doc false
-  def create(module, owner_or_id, args \\ %{})
+  def create(module, owner_or_id, args)
 
   def create(module, %{id: owner_id} = owner, args) when is_struct(owner) do
     create(module, owner_id, args)
@@ -12,20 +12,22 @@ defmodule Thumbtack.ImageUpload.Schema do
 
   def create(module, owner_id, args) do
     struct(module)
-    |> module.changeset(owner_id, args)
+    |> module.changeset(owner_id, args_to_map(args))
     |> Thumbtack.repo().insert()
   end
 
   @doc false
-  def get(module, owner_or_id, args \\ %{})
+  def get(module, owner_or_id, args)
 
   def get(module, %{id: owner_id} = owner, args) when is_struct(owner) do
     get(module, owner_id, args)
   end
 
   def get(module, owner_id, args) do
-    Thumbtack.repo().get_by(module, module.query_params(owner_id, args))
+    Thumbtack.repo().get_by(module, module.query_params(owner_id, args_to_map(args)))
   end
+
+  defp args_to_map(args), do: Enum.into(args, %{})
 
   @doc false
   def delete(struct) do
@@ -54,10 +56,10 @@ defmodule Thumbtack.ImageUpload.Schema do
       @primary_key {:id, :binary_id, autogenerate: true}
 
       schema unquote(schema_name) do
-        belongs_to unquote(field), unquote(module)
+        belongs_to(unquote(field), unquote(module))
 
         if unquote(max_images) > 1 do
-          field :index_number, :integer, default: 0
+          field(:index_number, :integer, default: 0)
         end
       end
 
@@ -67,7 +69,7 @@ defmodule Thumbtack.ImageUpload.Schema do
       """
       def max_images, do: unquote(max_images)
 
-      @spec create_image_upload(owner_or_id :: struct | :id, args :: map()) ::
+      @spec create_image_upload(owner_or_id :: struct | :id, args :: map() | keyword()) ::
               {:ok, struct} | {:error, Ecto.Changeset.t()}
       @doc """
       Creates a new image upload record in the repo.
@@ -76,7 +78,8 @@ defmodule Thumbtack.ImageUpload.Schema do
         Thumbtack.ImageUpload.Schema.create(__MODULE__, owner_or_id, args)
       end
 
-      @spec get_image_upload(owner_or_id :: struct() | :id, args :: map()) :: struct() | nil
+      @spec get_image_upload(owner_or_id :: struct() | :id, args :: map() | keyword()) ::
+              struct() | nil
       @doc """
       Fetches an image upload from the repo by a given `owner_or_id`.
 
@@ -86,7 +89,7 @@ defmodule Thumbtack.ImageUpload.Schema do
         Thumbtack.ImageUpload.Schema.get(__MODULE__, owner_or_id, args)
       end
 
-      @spec get_or_create_image_upload(owner_or_id :: struct() | :id, args :: map()) ::
+      @spec get_or_create_image_upload(owner_or_id :: struct() | :id, args :: map() | keyword()) ::
               struct() | {:error, Ecto.Changeset.t()}
       @doc """
       Fetches existing or creates new image upload for a given `owner_or_id`.
@@ -145,7 +148,10 @@ defmodule Thumbtack.ImageUpload.Schema do
       defp maybe_validate_index_number(changeset) do
         if unquote(max_images) > 1 do
           changeset
-          |> validate_number(:index_number, greater_than_or_equal_to: 0, less_than: unquote(max_images))
+          |> validate_number(:index_number,
+            greater_than_or_equal_to: 0,
+            less_than: unquote(max_images)
+          )
         else
           changeset
         end

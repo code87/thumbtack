@@ -84,21 +84,20 @@ end
 
 ### Work with image uploads
 
-
 When you add `use Thumbtack.ImageUpload` code to your `AlbumPhoto` module, the library 
 adds these functions to it:
 
  * `max_images()` - returns configured `:max_images` value (see schema definition above)
 
- * `upload(user, src_path, %{index: index, style: style})` - takes image from file located at `src_path`
+ * `upload(user, src_path, index: index)` - takes image from file located at `src_path`
  (usually temporary file), processes source image and uploads it to the storage. It assigns
  `:index` to the image and creates a database record
 
- * `get_url(user, %{index: index, style: style})` - returns an image URL for a given `style` and `index`
+ * `get_url(user, index: index, style: style)` - returns an image URL for a given `style` and `index`
    * styles are defined in `styles()` callback you implement in your schema module
    * `index` is an integer in the range of `0..AlbumPhoto.max_images()-1`
 
- * `delete(user, %{index: index})` - deletes image associated with given `user` and `index` from storage
+ * `delete(user, index: index)` - deletes image associated with given `user` and `index` from storage
  and the corresponding record from database.
 
  You can use those functions in your domain code:
@@ -108,15 +107,15 @@ defmodule MyApp.Albums do
   # ...
 
   def upload_album_photo(%Album{} = album, src_path, index) do
-    AlbumPhoto.upload(album, src_path, %{index: index})
+    AlbumPhoto.upload(album, src_path, index: index)
   end
 
   def get_album_photo_url(album_or_id, index, style \\ :original) do
-    AlbumPhoto.get_url(album_or_id, %{index: index, style: style})
+    AlbumPhoto.get_url(album_or_id, index: index, style: style)
   end
 
   def delete_album_photo(%Album{} = album, index) do
-    AlbumPhoto.delete(album, %{index: index})
+    AlbumPhoto.delete(album, index: index)
   end
 end
 ```
