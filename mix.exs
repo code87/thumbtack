@@ -52,7 +52,8 @@ defmodule Thumbtack.MixProject do
         "guides/single_image_upload.md",
         "guides/multiple_image_uploads.md",
         "guides/image_transformations.md",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "LICENSE.md"
       ],
       groups_for_extras: [
         Guides: ~r/guides\/[^\/]+\.md/

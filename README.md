@@ -69,3 +69,10 @@ Depending on your use case, please check one of the corresponding guides:
 And once again, for detailed information please check the `Thumbtack.ImageUpload` module docs.
 
 Enjoy!
+
+
+## Copyright and License
+
+Copyright (c) 2024, Code 87.
+
+Source code is licensed under the [MIT License](LICENSE.md).
