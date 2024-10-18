@@ -55,6 +55,7 @@ defmodule MyApp.AlbumPhoto do
     "/albums/#{album_id}/#{index}/#{photo_id}-#{style}.jpg"
   end
 
+  # you must implement this callback
   @impl true
   def styles do
     [

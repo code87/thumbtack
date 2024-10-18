@@ -2,7 +2,7 @@
 
 `Thumbtack` is a file upload library for Elixir that adds attachment capabilities to Ecto schemas.
 
-> **WARNING!** This project is a work in progress. Breaking changes may occur!
+> **WARNING!** This project is a work in progress. Breaking changes may occur.
 
 It supports multiple _styles_ for image uploads (e.g. `:original`, `:thumb` etc) along with simple 
 image transformations such as crop `:square`, `:resize` and `:thumbnail`.
@@ -11,7 +11,7 @@ Library supports storage providers:
  * `Thumbtack.Storage.Local`
  * `Thumbtack.Storage.S3` (not released yet)
 
-**NOTE** The library currently saves processed images in JPEG format.
+> **NOTE.** The library currently saves processed images in JPEG format.
 
 
 ## Installation

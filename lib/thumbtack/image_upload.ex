@@ -10,7 +10,7 @@ defmodule Thumbtack.ImageUpload do
     * `:foreign_key` - parent id field. Example: `:user_id`
     * `:schema` - name of a schema to define. Example: `"user_photos"`
     * `:max_images` - *optional*. Maximum number of images that may be uploaded and attached to parent record
-    (defined by `:belongs_to`). Must be an integer from `1` to `10_000`. Default: `1`.
+    defined by `:belongs_to`. Must be an integer from `1` to `10_000`. Default: `1`.
 
   Example:
       defmodule MyApp.User do
@@ -53,14 +53,13 @@ defmodule Thumbtack.ImageUpload do
   This callback should generate relative path for image upload files.
 
   Arguments:
-    * `owner_id` - an id of image upload parent entity (e.g. `User`)
-    * `image_upload_id` - a binary id of image upload entity (e.g. `UserPhoto`)
+    * `owner_id` - an `:id` of image upload parent entity (e.g. `User`)
+    * `image_upload_id` - a `:binary_id` of image upload entity (e.g. `UserPhoto`)
     * `args` - a map. The following keys are supported:
-      * `:style` - a variation of an image. For example, `:original`, `thumb` etc
+      * `:style` - a variation of an image. For example, `:original`, `:thumb` etc
       * `:index` - an index number in a collection of parent image uploads.
 
-  Example implementation:
-
+  Example 1:
       defmodule MyApp.UserPhoto do
         @behaviour Thumbtack.ImageUpload
 
@@ -73,21 +72,33 @@ defmodule Thumbtack.ImageUpload do
       UserPhoto.get_path(124, "456-abc", %{style: :thumb})
       > "/accounts/users/123/456-abc-thumb.jpg"
 
+  Example 2:
+      defmodule AlbumPhoto do
+        @behaviour Thumbtack.ImageUpload
+
+        @impl true
+        def get_path(album_id, photo_id, %{index: index, style: style}) do
+          "/albums/\#{album_id}/photos/\#{index}/\#{photo_id}-\#{style}.jpg"
+        end
+      end
+
+      AlbumPhoto.get_path(124, "456-abc", %{index: 1, style: :md})
+      > "/albums/124/photos/1/456-abc-md.jpg"
+
   """
   @callback get_path(owner_id :: :id, image_upload_id :: :binary_id, args :: map()) :: String.t()
 
   @doc """
-  This callback should return an information about supported image _styles_ along
+  This callback should return an information about supported image styles along
   with a list of image transformations to be applied for each style during the upload process.
 
   You may give your image styles any names you like (e.g. `:thumb`, `:medium`, `:xlarge`).
-  However each image must have `:original` style defined.
+  However, each image must have `:original` style defined.
 
-  For a list of supported image transformations see
+  For the list of supported image transformations see
   [Image transformations](guides/image_transformations.md) guide.
 
   Example implementation:
-
       defmodule UserPhoto do
         @behaviour Thumbtack.ImageUpload
 
