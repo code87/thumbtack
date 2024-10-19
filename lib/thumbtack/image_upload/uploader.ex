@@ -69,9 +69,14 @@ defmodule Thumbtack.ImageUpload.Uploader do
   @doc false
   def maybe_download_image(uploader_or_error)
 
-  def maybe_download_image(%__MODULE__{src_path: "http" <> _rest_of_url} = uploader) do
-    {:error, "Thumbtack.ImageUpload.Uploader: downloading images by URL is not yet implemented",
-     uploader}
+  def maybe_download_image(%__MODULE__{src_path: "http" <> _rest = url} = uploader) do
+    case Thumbtack.HttpClient.download(url) do
+      {:ok, path} ->
+        %__MODULE__{uploader | src_path: path}
+
+      {:error, term} ->
+        {:error, term, uploader}
+    end
   end
 
   def maybe_download_image(%__MODULE__{src_path: src_path} = uploader) when is_binary(src_path) do
@@ -129,7 +134,11 @@ defmodule Thumbtack.ImageUpload.Uploader do
 
   def get_or_create_image_upload(%__MODULE__{} = uploader) do
     %{module: module, owner: owner, index: index} = uploader
-    %__MODULE__{uploader | image_upload: module.get_or_create_image_upload(owner, %{index: index})}
+
+    %__MODULE__{
+      uploader
+      | image_upload: module.get_or_create_image_upload(owner, %{index: index})
+    }
   end
 
   def get_or_create_image_upload({:error, term, uploader}), do: {:error, term, uploader}

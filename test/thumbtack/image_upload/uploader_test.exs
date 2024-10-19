@@ -72,9 +72,16 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
   end
 
   describe "maybe_download_image(uploader)" do
-    # TODO: implement image downloading
-    test "returns error if src_path is a url" do
-      uploader = Uploader.new(src_path: "https://googleimages.com/photo.jpg")
+    test "downloads image to temp folder, updates src_path" do
+      uploader = Uploader.new(src_path: "https://example.com/photo-small.jpg")
+
+      assert %Uploader{src_path: src_path} = Uploader.maybe_download_image(uploader)
+      assert String.starts_with?(src_path, System.tmp_dir())
+      assert File.exists?(src_path)
+    end
+
+    test "returns error if request fails" do
+      uploader = Uploader.new(src_path: "https://example.com/photo-unknown.jpg")
 
       assert {:error, _message, _uploader} = Uploader.maybe_download_image(uploader)
     end
