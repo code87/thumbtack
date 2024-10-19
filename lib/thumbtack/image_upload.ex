@@ -6,28 +6,36 @@ defmodule Thumbtack.ImageUpload do
 
   ### Options
 
-    * `:belongs_to` - a `{field, module}` tuple which defines a belongs-to association. Example: `{:user, MyApp.User}`
     * `:foreign_key` - parent id field. Example: `:user_id`
-    * `:schema` - name of a schema to define. Example: `"user_photos"`
-    * `:max_images` - *optional*. Maximum number of images that may be uploaded and attached to parent record
-    defined by `:belongs_to`. Must be an integer from `1` to `10_000`. Default: `1`.
+    * `:max_images` - *optional*. Maximum number of images that may be uploaded and attached to the parent record
+    which image upload belongs to. Must be an integer from `1` to `10_000`. Default: `1`.
 
-  Example:
-      defmodule MyApp.User do
-        schema "users" do
-          has_one :photo, MyApp.UserPhoto
+  Example 1:
+      defmodule MyApp.UserPhoto do
+        use Thumbtack.ImageUpload, foreign_key: :user_id
+
+        @primary_key {:id, :binary_id, autogenerate: true}
+        schema "user_photos" do
+          belongs_to :user, MyApp.User
         end
       end
 
-      defmodule MyApp.UserPhoto do
+  Example 2:
+      defmodule MyApp.AlbumPhoto do
         use Thumbtack.ImageUpload,
-                belongs_to: {:user, MyApp.User},
-                foreign_key: :user_id,
-                schema: "user_photos"
+          foreign_key: :album_id,
+          max_images: 3
+
+        @primary_key {:id, :binary_id, autogenerate: true}
+        schema "album_photos" do
+          belongs_to :album, MyApp.Album
+          field :index_number, :integer, default: 0
+        end
       end
 
-  **NOTE.** You still have to write repo migration yourself. Please refer to
-  [Single image upload](guides/single_image_upload.md) or
+  **NOTE.** You still have to write repo migration yourself.
+
+  Please refer to [Single image upload](guides/single_image_upload.md) or
   [Multiple image uploads](guides/multiple_image_uploads.md) guide depending on your use case.
 
   """

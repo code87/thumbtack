@@ -41,11 +41,13 @@ end
 defmodule MyApp.UserPhoto do
   @behaviour Thumbtack.ImageUpload
 
-  # this will automatically generate Ecto schema
-  use Thumbtack.ImageUpload,
-    belongs_to: {:user, MyApp.User},
-    foreign_key: :user_id,
-    schema: "user_photos"
+  # this line adds `use Ecto.Schema`
+  use Thumbtack.ImageUpload, foreign_key: :user_id
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "user_photos" do
+    belongs_to :user, MyApp.User
+  end
 
   # you must implement this callback
   @impl true

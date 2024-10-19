@@ -6,8 +6,7 @@ defmodule Thumbtack.ImageUpload.SingleImageSchemaTest do
   defmodule UserPhoto do
     alias Thumbtack.User
 
-    use Thumbtack.ImageUpload.Schema,
-      foreign_key: :user_id
+    use Thumbtack.ImageUpload.Schema, foreign_key: :user_id
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "user_photos" do

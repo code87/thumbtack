@@ -42,12 +42,16 @@ end
 defmodule MyApp.AlbumPhoto do
   @behaviour Thumbtack.ImageUpload
 
-  # this will automatically generate Ecto schema
+  # this line adds `use Ecto.Schema`
   use Thumbtack.ImageUpload,
-    belongs_to: {:album, MyApp.Album},
     foreign_key: :album_id,
-    schema: "album_photos",
     max_images: 3
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "album_photos" do
+    belongs_to :album, MyApp.Album
+    field :index_number, :integer, default: 0
+  end
 
   # you must implement this callback
   @impl true
