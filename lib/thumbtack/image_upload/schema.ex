@@ -12,7 +12,7 @@ defmodule Thumbtack.ImageUpload.Schema do
 
   def create(module, owner_id, args) do
     struct(module)
-    |> module.changeset(owner_id, args_to_map(args))
+    |> module.image_upload_changeset(owner_id, args_to_map(args))
     |> Thumbtack.repo().insert()
   end
 
@@ -35,9 +35,7 @@ defmodule Thumbtack.ImageUpload.Schema do
   end
 
   defmacro __using__(opts) do
-    {field, module} = Keyword.fetch!(opts, :belongs_to)
     foreign_key = Keyword.fetch!(opts, :foreign_key)
-    schema_name = Keyword.fetch!(opts, :schema)
     max_images = Keyword.get(opts, :max_images, 1)
 
     if max_images < 1 do
@@ -52,16 +50,6 @@ defmodule Thumbtack.ImageUpload.Schema do
       import Ecto.Changeset
 
       use Ecto.Schema
-
-      @primary_key {:id, :binary_id, autogenerate: true}
-
-      schema unquote(schema_name) do
-        belongs_to(unquote(field), unquote(module))
-
-        if unquote(max_images) > 1 do
-          field(:index_number, :integer, default: 0)
-        end
-      end
 
       @spec max_images() :: integer()
       @doc """
@@ -96,11 +84,11 @@ defmodule Thumbtack.ImageUpload.Schema do
       """
       def get_or_create_image_upload(owner_or_id, args \\ %{}) do
         case get_image_upload(owner_or_id, args) do
-          %__MODULE__{id: _image_upload_id} = image_upload ->
+          %{id: _image_upload_id} = image_upload ->
             image_upload
 
           nil ->
-            {:ok, %__MODULE__{} = image_upload} = create_image_upload(owner_or_id, args)
+            {:ok, image_upload} = create_image_upload(owner_or_id, args)
             image_upload
         end
       end
@@ -112,13 +100,13 @@ defmodule Thumbtack.ImageUpload.Schema do
 
       Returns `{:ok, image_upload}` or `{:error, %Ecto.Changeset{}}`.
       """
-      def delete_image_upload(%__MODULE__{} = image_upload) do
+      def delete_image_upload(image_upload) when is_struct(image_upload, __MODULE__) do
         Thumbtack.ImageUpload.Schema.delete(image_upload)
       end
 
-      @spec changeset(struct :: struct(), owner_id :: :id, args :: map()) :: Ecto.Changeset.t()
+      @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) :: Ecto.Changeset.t()
       @doc false
-      def changeset(struct, owner_id, args \\ %{}) do
+      def image_upload_changeset(struct, owner_id, args \\ %{}) do
         struct
         |> put_changes(owner_id, args)
         |> validate_photo_uniqueness()

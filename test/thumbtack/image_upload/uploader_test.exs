@@ -12,9 +12,12 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
     alias Thumbtack.User
 
     use Thumbtack.ImageUpload,
-      belongs_to: {:user, User},
-      foreign_key: :user_id,
-      schema: "user_photos"
+      foreign_key: :user_id
+
+    @primary_key {:id, :binary_id, autogenerate: true}
+    schema "user_photos" do
+      belongs_to(:user, User)
+    end
 
     @impl true
     def get_path(user_id, photo_id, %{style: style}) do

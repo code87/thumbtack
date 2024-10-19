@@ -5,29 +5,17 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
 
   defmodule AlbumPhoto do
     use Thumbtack.ImageUpload,
-      belongs_to: {:album, Album},
       foreign_key: :album_id,
-      schema: "album_photos",
       max_images: 3
+
+    @primary_key {:id, :binary_id, autogenerate: true}
+    schema "album_photos" do
+      belongs_to :album, Album
+      field :index_number, :integer, default: 0
+    end
   end
 
   describe "__using__(opts)" do
-    test "defines ecto schema" do
-      assert "album_photos" == AlbumPhoto.__schema__(:source)
-
-      assert [:id] == AlbumPhoto.__schema__(:primary_key)
-      assert :binary_id == AlbumPhoto.__schema__(:type, :id)
-      assert :integer == AlbumPhoto.__schema__(:type, :index_number)
-
-      assert %Ecto.Association.BelongsTo{
-               field: :album,
-               related: Album,
-               owner_key: :album_id,
-               cardinality: :one,
-               relationship: :parent
-             } = AlbumPhoto.__schema__(:association, :album)
-    end
-
     test "validates max_images" do
       assert_raise ArgumentError, fn ->
         defmodule ZeroImages do
@@ -60,7 +48,8 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "creates image upload for a given index", %{album: album} do
-      assert {:ok, %AlbumPhoto{index_number: 1}} = AlbumPhoto.create_image_upload(album, %{index: 1})
+      assert {:ok, %AlbumPhoto{index_number: 1}} =
+               AlbumPhoto.create_image_upload(album, %{index: 1})
     end
 
     test "default index is 0; accepts owner id", %{album: album} do
@@ -121,7 +110,9 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
 
     test "creates new image upload, if one does not exist; accepts owner id", %{album: album} do
       %{id: album_id} = album
-      assert %AlbumPhoto{index_number: 2} = AlbumPhoto.get_or_create_image_upload(album_id, %{index: 2})
+
+      assert %AlbumPhoto{index_number: 2} =
+               AlbumPhoto.get_or_create_image_upload(album_id, %{index: 2})
     end
   end
 
@@ -129,9 +120,11 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
     setup :create_album
 
     test "deletes image upload (index not needed)", %{album: album} do
-      {:ok, %{id: image_upload_id} = image_upload} = AlbumPhoto.create_image_upload(album, %{index: 1})
+      {:ok, %{id: image_upload_id} = image_upload} =
+        AlbumPhoto.create_image_upload(album, %{index: 1})
 
-      assert {:ok, %AlbumPhoto{id: ^image_upload_id}} = AlbumPhoto.delete_image_upload(image_upload)
+      assert {:ok, %AlbumPhoto{id: ^image_upload_id}} =
+               AlbumPhoto.delete_image_upload(image_upload)
 
       refute AlbumPhoto.get_image_upload(album, %{index: 1})
     end

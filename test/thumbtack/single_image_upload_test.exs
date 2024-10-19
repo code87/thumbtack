@@ -7,9 +7,13 @@ defmodule Thumbtack.SingleImageUploadTest do
     @behaviour Thumbtack.ImageUpload
 
     use Thumbtack.ImageUpload,
-      belongs_to: {:user, User},
       foreign_key: :user_id,
       schema: "user_photos"
+
+    @primary_key {:id, :binary_id, autogenerate: true}
+    schema "user_photos" do
+      belongs_to :user, User
+    end
 
     @impl true
     def get_path(user_id, photo_id, %{style: style}) do

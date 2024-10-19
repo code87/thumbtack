@@ -7,10 +7,14 @@ defmodule Thumbtack.MultipleImageUploadsTest do
     @behaviour Thumbtack.ImageUpload
 
     use Thumbtack.ImageUpload,
-      belongs_to: {:album, Album},
       foreign_key: :album_id,
-      schema: "album_photos",
       max_images: 3
+
+    @primary_key {:id, :binary_id, autogenerate: true}
+    schema "album_photos" do
+      belongs_to :album, Album
+      field :index_number, :integer, default: 0
+    end
 
     @impl true
     def get_path(album_id, photo_id, %{index: index, style: style}) do
@@ -82,14 +86,14 @@ defmodule Thumbtack.MultipleImageUploadsTest do
       {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, index: 1)
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 1}} =
-        AlbumPhoto.delete(album, %{index: 1})
+               AlbumPhoto.delete(album, %{index: 1})
     end
 
     test "default index is 0", %{album: album} do
       {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, %{index: 0})
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 0}} =
-        AlbumPhoto.delete(album)
+               AlbumPhoto.delete(album)
     end
 
     test "returns error tuple if image not found", %{album: album} do

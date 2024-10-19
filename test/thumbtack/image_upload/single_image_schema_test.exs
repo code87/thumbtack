@@ -7,25 +7,11 @@ defmodule Thumbtack.ImageUpload.SingleImageSchemaTest do
     alias Thumbtack.User
 
     use Thumbtack.ImageUpload.Schema,
-      belongs_to: {:user, User},
-      foreign_key: :user_id,
-      schema: "user_photos"
-  end
+      foreign_key: :user_id
 
-  describe "__using__(opts)" do
-    test "defines ecto schema" do
-      assert "user_photos" == UserPhoto.__schema__(:source)
-
-      assert [:id] == UserPhoto.__schema__(:primary_key)
-      assert :binary_id == UserPhoto.__schema__(:type, :id)
-
-      assert %Ecto.Association.BelongsTo{
-               field: :user,
-               related: User,
-               owner_key: :user_id,
-               cardinality: :one,
-               relationship: :parent
-             } = UserPhoto.__schema__(:association, :user)
+    @primary_key {:id, :binary_id, autogenerate: true}
+    schema "user_photos" do
+      belongs_to :user, User
     end
   end
 
