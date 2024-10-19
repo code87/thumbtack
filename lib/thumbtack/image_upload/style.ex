@@ -45,9 +45,7 @@ defmodule Thumbtack.ImageUpload.Style do
 
   @doc false
   def save(%__MODULE__{image: %Vips.Image{} = image} = style_state) do
-    path =
-      System.tmp_dir()
-      |> Path.join(Ecto.UUID.generate() <> ".jpg")
+    path = Thumbtack.Utils.generate_tempfile_path(".jpg")
 
     case Vips.Operation.jpegsave(image, path, @save_opts) do
       :ok ->
