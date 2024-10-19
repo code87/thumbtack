@@ -22,7 +22,7 @@ defmodule Thumbtack.MixProject do
   end
 
   defp extra_applications(:test), do: [:postgrex, :ecto_sql, :logger]
-  defp extra_applications(_), do: [:logger]
+  defp extra_applications(_), do: [:logger, :inets, :ssl]
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]

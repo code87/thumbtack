@@ -3,6 +3,9 @@ import Config
 # Print only warnings and errors during test
 config :logger, level: :warning
 
+# Use fake httpc implementation during test
+config :thumbtack, httpc: Thumbtack.FakeHttpc
+
 config :thumbtack,
   ecto_repos: [Thumbtack.Repo]
 
