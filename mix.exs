@@ -4,7 +4,7 @@ defmodule Thumbtack.MixProject do
   def project do
     [
       app: :thumbtack,
-      version: "0.0.1",
+      version: "0.0.2",
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
