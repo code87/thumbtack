@@ -1,6 +1,8 @@
 defmodule Thumbtack.TestCase do
   @moduledoc false
 
+  alias Vix.Vips
+
   use ExUnit.CaseTemplate
 
   using do
@@ -62,7 +64,7 @@ defmodule Thumbtack.TestCase do
   def load_image_fixture(filename) do
     {:ok, image} =
       Path.join(["test/fixtures", filename])
-      |> Vix.Vips.Image.new_from_file()
+      |> Vips.Image.new_from_file()
 
     image
   end

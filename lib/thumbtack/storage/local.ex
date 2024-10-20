@@ -25,7 +25,7 @@ defmodule Thumbtack.Storage.Local do
 
   """
   @impl true
-  def root_url(), do: Thumbtack.config(__MODULE__)[:root_url]
+  def root_url, do: Thumbtack.config(__MODULE__)[:root_url]
 
   @doc """
   Returns configured local storage path.

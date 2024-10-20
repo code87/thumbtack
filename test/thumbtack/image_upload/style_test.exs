@@ -1,6 +1,6 @@
 defmodule Thumbtack.ImageUpload.StyleTest do
-  alias Thumbtack.ImageUpload.Uploader
   alias Thumbtack.ImageUpload.Style
+  alias Thumbtack.ImageUpload.Uploader
 
   alias Vix.Vips
 

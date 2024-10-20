@@ -2,8 +2,8 @@ defmodule Thumbtack.ImageUpload.Style do
   @moduledoc false
 
   alias Thumbtack.Image
-  alias Thumbtack.ImageUpload.Uploader
   alias Thumbtack.ImageUpload.Transformation
+  alias Thumbtack.ImageUpload.Uploader
 
   alias Vix.Vips
 

@@ -24,8 +24,10 @@ defmodule Thumbtack.ImageUpload.Uploader do
   #   * Return image upload and style urls
   #
 
-  alias Thumbtack.ImageUpload.Transformation
   alias Thumbtack.ImageUpload.Style
+  alias Thumbtack.ImageUpload.Transformation
+
+  alias Vix.Vips
 
   @type t :: %__MODULE__{
           module: atom(),
@@ -95,8 +97,8 @@ defmodule Thumbtack.ImageUpload.Uploader do
     #   Loading is fast: only enough of the image is loaded to be able to fill out the header.
     #   Pixels will only be decompressed when they are needed.
     #
-    case Vix.Vips.Image.new_from_file(src_path) do
-      {:ok, %Vix.Vips.Image{} = _image} ->
+    case Thumbtack.Image.load_image(src_path) do
+      {:ok, %Vips.Image{} = _image} ->
         # TODO: use this image in first style processing, if possible
         uploader
 

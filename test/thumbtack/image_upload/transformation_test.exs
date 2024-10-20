@@ -1,7 +1,7 @@
 defmodule Thumbtack.ImageUpload.Uploader.TransformationTest do
-  alias Thumbtack.ImageUpload.Uploader
   alias Thumbtack.ImageUpload.Style
   alias Thumbtack.ImageUpload.Transformation
+  alias Thumbtack.ImageUpload.Uploader
 
   alias Vix.Vips
 

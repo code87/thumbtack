@@ -1,9 +1,10 @@
 defmodule Thumbtack.Factory do
   @moduledoc false
 
+  alias Thumbtack.Repo
+
   alias Thumbtack.Album
   alias Thumbtack.User
-  alias Thumbtack.Repo
 
   def insert(model, attrs \\ %{})
 
