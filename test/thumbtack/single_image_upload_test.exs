@@ -6,9 +6,7 @@ defmodule Thumbtack.SingleImageUploadTest do
   defmodule UserPhoto do
     @behaviour Thumbtack.ImageUpload
 
-    use Thumbtack.ImageUpload,
-      foreign_key: :user_id,
-      schema: "user_photos"
+    use Thumbtack.ImageUpload, foreign_key: :user_id
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "user_photos" do
@@ -16,8 +14,8 @@ defmodule Thumbtack.SingleImageUploadTest do
     end
 
     @impl true
-    def get_path(user_id, photo_id, %{style: style}) do
-      "/#{user_id}/#{photo_id}-#{style}.jpg"
+    def path_prefix(user_id, photo_id, %{style: style}) do
+      "/#{user_id}/#{photo_id}-#{style}"
     end
 
     @impl true
@@ -53,14 +51,14 @@ defmodule Thumbtack.SingleImageUploadTest do
     test "returns an image url for a given style", %{user: user} do
       {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
 
-      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-thumb.jpg" ==
+      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-thumb.png" ==
                UserPhoto.get_url(user, style: :thumb)
     end
 
     test "default style if original", %{user: user} do
       {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
 
-      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-original.jpg" ==
+      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-original.png" ==
                UserPhoto.get_url(user)
     end
 

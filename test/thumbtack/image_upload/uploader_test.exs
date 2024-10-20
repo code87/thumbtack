@@ -20,8 +20,8 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
     end
 
     @impl true
-    def get_path(user_id, photo_id, %{style: style}) do
-      "/#{user_id}/#{photo_id}-#{style}.jpg"
+    def path_prefix(user_id, photo_id, %{style: style}) do
+      "/#{user_id}/#{photo_id}-#{style}"
     end
 
     @impl true
@@ -35,6 +35,7 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
 
   def uploader_with_styles(src_path \\ "") do
     Uploader.new(
+      module: UserPhoto,
       src_path: src_path,
       styles: [
         original: [:square, {:resize, 256}],
@@ -130,6 +131,7 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
       uploader = uploader_with_styles("test/fixtures/photo-small.jpg")
 
       assert %Uploader{
+               module: UserPhoto,
                state: %{
                  original: %Style{image: %Vips.Image{} = original_image, path: original_path},
                  thumb: %Style{image: %Vips.Image{} = thumb_image, path: thumb_path}
@@ -204,8 +206,8 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
 
       assert %Uploader{
                state: %{
-                 original: %{url: "http://localhost:4000/uploads/123/54321-abcde-original.jpg"},
-                 thumb: %{url: "http://localhost:4000/uploads/123/54321-abcde-thumb.jpg"}
+                 original: %{url: "http://localhost:4000/uploads/123/54321-abcde-original.png"},
+                 thumb: %{url: "http://localhost:4000/uploads/123/54321-abcde-thumb.png"}
                }
              } = Uploader.put_to_storage(uploader)
     end

@@ -51,8 +51,8 @@ defmodule MyApp.UserPhoto do
 
   # you must implement this callback
   @impl true
-  def get_path(user_id, photo_id, %{style: style} = _args) do
-    "/accounts/users/#{user_id}/#{photo_id}-#{style}.jpg"
+  def path_prefix(user_id, photo_id, %{style: style} = _args) do
+    "/accounts/users/#{user_id}/#{photo_id}-#{style}"
   end
 
   # you must implement this callback

@@ -55,8 +55,8 @@ defmodule MyApp.AlbumPhoto do
 
   # you must implement this callback
   @impl true
-  def get_path(album_id, photo_id, %{index: index, style: style} = _args) do
-    "/albums/#{album_id}/#{index}/#{photo_id}-#{style}.jpg"
+  def path_prefix(album_id, photo_id, %{index: index, style: style} = _args) do
+    "/albums/#{album_id}/#{index}/#{photo_id}-#{style}"
   end
 
   # you must implement this callback

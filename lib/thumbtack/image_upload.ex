@@ -7,6 +7,9 @@ defmodule Thumbtack.ImageUpload do
   ### Options
 
     * `:foreign_key` - parent id field. Example: `:user_id`
+
+    * `:format` - *optional*. Image output file format. One of: `[:jpg, :png]`. Default: `:png`.
+
     * `:max_images` - *optional*. Maximum number of images that may be uploaded and attached to the parent record
     which image upload belongs to. Must be an integer from `1` to `10_000`. Default: `1`.
 
@@ -24,6 +27,7 @@ defmodule Thumbtack.ImageUpload do
       defmodule MyApp.AlbumPhoto do
         use Thumbtack.ImageUpload,
           foreign_key: :album_id,
+          format: :jpg,
           max_images: 3
 
         @primary_key {:id, :binary_id, autogenerate: true}
@@ -58,7 +62,7 @@ defmodule Thumbtack.ImageUpload do
   #
 
   @doc """
-  This callback should generate relative path for image upload files.
+  This callback should generate relative path for image upload files (*without file extension*).
 
   Arguments:
     * `owner_id` - an `:id` of image upload parent entity (e.g. `User`)
@@ -72,29 +76,30 @@ defmodule Thumbtack.ImageUpload do
         @behaviour Thumbtack.ImageUpload
 
         @impl true
-        def get_path(user_id, photo_id, %{style: style}) do
-          "/accounts/users/\#{user_id}/\#{photo_id}-\#{style}.jpg"
+        def path_prefix(user_id, photo_id, %{style: style}) do
+          "/accounts/users/\#{user_id}/\#{photo_id}-\#{style}"
         end
       end
 
-      UserPhoto.get_path(124, "456-abc", %{style: :thumb})
-      > "/accounts/users/123/456-abc-thumb.jpg"
+      UserPhoto.path_prefix(124, "456-abc", %{style: :thumb})
+      > "/accounts/users/123/456-abc-thumb"
 
   Example 2:
       defmodule AlbumPhoto do
         @behaviour Thumbtack.ImageUpload
 
         @impl true
-        def get_path(album_id, photo_id, %{index: index, style: style}) do
-          "/albums/\#{album_id}/photos/\#{index}/\#{photo_id}-\#{style}.jpg"
+        def path_prefix(album_id, photo_id, %{index: index, style: style}) do
+          "/albums/\#{album_id}/photos/\#{index}/\#{photo_id}-\#{style}"
         end
       end
 
-      AlbumPhoto.get_path(124, "456-abc", %{index: 1, style: :md})
-      > "/albums/124/photos/1/456-abc-md.jpg"
+      AlbumPhoto.path_prefix(124, "456-abc", %{index: 1, style: :md})
+      > "/albums/124/photos/1/456-abc-md"
 
   """
-  @callback get_path(owner_id :: :id, image_upload_id :: :binary_id, args :: map()) :: String.t()
+  @callback path_prefix(owner_id :: :id, image_upload_id :: :binary_id, args :: map()) ::
+              String.t()
 
   @doc """
   This callback should return an information about supported image styles along
@@ -168,25 +173,49 @@ defmodule Thumbtack.ImageUpload do
 
   @spec get_url(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) :: String.t()
   @doc false
-  def get_url(module, owner_or_id, args)
-
-  def get_url(module, %{id: owner_id} = owner, args) when is_struct(owner) do
-    get_url(module, owner_id, args)
+  def get_url(module, owner_or_id, args) do
+    if path = get_path(module, owner_or_id, args) do
+      Path.join(Thumbtack.storage().root_url(), path)
+    else
+      nil
+    end
   end
 
-  def get_url(module, owner_id, args) do
-    opts = fetch_options(args)
+  @spec get_path(
+          module :: atom(),
+          owner_or_id :: owner_or_id(),
+          args :: map()
+        ) :: String.t() | nil
+  @doc false
+  def get_path(module, %{id: owner_id} = owner, args) when is_struct(owner) do
+    get_path(module, owner_id, args)
+  end
 
-    case module.get_image_upload(owner_id, opts) do
+  def get_path(module, owner_id, args) do
+    case module.get_image_upload(owner_id, args) do
       %{id: image_upload_id} ->
-        Path.join(
-          Thumbtack.storage().root_url(),
-          module.get_path(owner_id, image_upload_id, opts)
-        )
+        get_path(module, owner_id, image_upload_id, args)
 
       nil ->
         nil
     end
+  end
+
+  @spec get_path(
+          module :: atom(),
+          owner_id :: :id,
+          image_upload_id :: :binary_id,
+          args :: map()
+        ) :: String.t() | nil
+  @doc false
+  def get_path(module, owner_id, image_upload_id, args) do
+    opts = fetch_options(args)
+
+    extension =
+      module.image_upload_format()
+      |> Thumbtack.Image.format_extension()
+
+    module.path_prefix(owner_id, image_upload_id, opts) <> extension
   end
 
   @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) ::
@@ -222,6 +251,12 @@ defmodule Thumbtack.ImageUpload do
   #
 
   defmacro __using__(opts) do
+    format = Keyword.get(opts, :format, :png)
+
+    if format not in [:jpg, :png] do
+      raise ArgumentError, "Thumbtack: unsupported image format #{format}"
+    end
+
     quote do
       use Thumbtack.ImageUpload.Schema, unquote(opts)
 
@@ -247,6 +282,8 @@ defmodule Thumbtack.ImageUpload do
       def delete(owner, args \\ %{}) do
         Thumbtack.ImageUpload.delete(__MODULE__, owner, args)
       end
+
+      def image_upload_format, do: unquote(format)
     end
   end
 end

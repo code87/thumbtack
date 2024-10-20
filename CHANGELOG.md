@@ -2,7 +2,7 @@
 
 ### 0.0.2 (Oct 19 2024)
 
-* `c:Thumbtack.ImageUpload.get_path/3` callback API changed
+* `m:Thumbtack.ImageUpload` callback API changed
 * `Ecto.Schema.schema/2` macro call removed from `m:Thumbtack.ImageUpload`
 * improved documentation
 

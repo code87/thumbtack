@@ -1,7 +1,7 @@
 defmodule Thumbtack.ImageUpload.Transformation do
   @moduledoc false
 
-  alias Thumbtack.ImageUpload.ImageOperations
+  alias Thumbtack.Image
   alias Thumbtack.ImageUpload.Style
   alias Thumbtack.ImageUpload.Uploader
 
@@ -19,13 +19,13 @@ defmodule Thumbtack.ImageUpload.Transformation do
 
   def process(style_state, :square, uploader) do
     do_process(style_state, uploader, fn image_or_path ->
-      ImageOperations.square(image_or_path)
+      Image.square(image_or_path)
     end)
   end
 
   def process(style_state, {:resize, size}, uploader) do
     do_process(style_state, uploader, fn image_or_path ->
-      ImageOperations.resize(image_or_path, size)
+      Image.resize(image_or_path, size)
     end)
   end
 
@@ -33,7 +33,7 @@ defmodule Thumbtack.ImageUpload.Transformation do
   def process(style_state, {:thumbnail, size: size, source: source}, uploader) do
     with %Style{path: path} <- Map.get(uploader.state, source),
          true <- is_binary(path),
-         {:ok, image} <- ImageOperations.thumbnail(path, size) do
+         {:ok, image} <- Image.thumbnail(path, size) do
       %Style{style_state | image: image}
     else
       _ ->

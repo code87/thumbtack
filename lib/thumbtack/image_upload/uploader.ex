@@ -159,7 +159,11 @@ defmodule Thumbtack.ImageUpload.Uploader do
       style_state = Map.get(state, style)
       %{path: path} = style_state
 
-      dest_path = module.get_path(owner_id, image_upload_id, %{index: index, style: style})
+      dest_path =
+        Thumbtack.ImageUpload.get_path(module, owner_id, image_upload_id, %{
+          index: index,
+          style: style
+        })
 
       case Thumbtack.storage().put(path, dest_path) do
         {:ok, url} ->

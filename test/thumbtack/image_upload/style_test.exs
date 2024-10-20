@@ -33,18 +33,18 @@ defmodule Thumbtack.ImageUpload.StyleTest do
     end
   end
 
-  describe "save(style_state)" do
+  describe "save(style_state, format)" do
     test "saves style image to temporary file" do
       style_state = Style.new(image: load_image_fixture("photo-square.heic"))
 
-      assert %Style{path: path} = Style.save(style_state)
+      assert %Style{path: path} = Style.save(style_state, :png)
       assert File.exists?(path)
     end
 
-    test "saves in jpeg format" do
+    test "saves in jpg format" do
       style_state = Style.new(image: load_image_fixture("photo-square.heic"))
 
-      %Style{path: path} = Style.save(style_state)
+      %Style{path: path} = Style.save(style_state, :jpg)
 
       assert String.ends_with?(path, ".jpg")
       assert {:ok, {%Vips.Image{}, _flags}} = Vips.Operation.jpegload(path)

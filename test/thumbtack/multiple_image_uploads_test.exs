@@ -8,6 +8,7 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
     use Thumbtack.ImageUpload,
       foreign_key: :album_id,
+      format: :jpg,
       max_images: 3
 
     @primary_key {:id, :binary_id, autogenerate: true}
@@ -17,8 +18,8 @@ defmodule Thumbtack.MultipleImageUploadsTest do
     end
 
     @impl true
-    def get_path(album_id, photo_id, %{index: index, style: style}) do
-      "/#{album_id}/#{index}/#{photo_id}-#{style}.jpg"
+    def path_prefix(album_id, photo_id, %{index: index, style: style}) do
+      "/#{album_id}/#{index}/#{photo_id}-#{style}"
     end
 
     @impl true

@@ -1,6 +1,7 @@
 defmodule Thumbtack.ImageUpload.Style do
   @moduledoc false
 
+  alias Thumbtack.Image
   alias Thumbtack.ImageUpload.Uploader
   alias Thumbtack.ImageUpload.Transformation
 
@@ -10,8 +11,6 @@ defmodule Thumbtack.ImageUpload.Style do
           image: Vix.Vips.Image.t(),
           path: String.t()
         }
-
-  @save_opts strip: true, Q: 80
 
   defstruct image: nil, path: nil
 
@@ -24,10 +23,10 @@ defmodule Thumbtack.ImageUpload.Style do
   @spec process(uploader :: Uploader.t(), transformations :: [Transformation.t()]) ::
           t() | {:error, term()}
   @doc false
-  def process(uploader, transformations) do
+  def process(%Uploader{module: module} = uploader, transformations) do
     new()
     |> apply_transformations(transformations, uploader)
-    |> save()
+    |> save(module.image_upload_format())
   end
 
   @doc false
@@ -44,12 +43,15 @@ defmodule Thumbtack.ImageUpload.Style do
   end
 
   @doc false
-  def save(%__MODULE__{image: %Vips.Image{} = image} = style_state) do
-    path = Thumbtack.Utils.generate_tempfile_path(".jpg")
+  def save(%__MODULE__{image: %Vips.Image{} = image} = style_state, format)
+      when is_atom(format) do
+    image_path =
+      Image.format_extension(format)
+      |> Thumbtack.Utils.generate_tempfile_path()
 
-    case Vips.Operation.jpegsave(image, path, @save_opts) do
+    case Image.save_image(image, image_path, format) do
       :ok ->
-        %__MODULE__{style_state | path: path}
+        %__MODULE__{style_state | path: image_path}
 
       {:error, term} ->
         {:error, term}
@@ -57,5 +59,5 @@ defmodule Thumbtack.ImageUpload.Style do
   end
 
   # for piping
-  def save({:error, term}), do: {:error, term}
+  def save({:error, term}, _format), do: {:error, term}
 end
