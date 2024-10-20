@@ -54,6 +54,7 @@ defmodule Thumbtack.ImageUpload do
   @type style_def :: {atom(), [transformation_def()]}
 
   @typep owner_or_id :: struct() | :id
+  @typep map_or_keyword :: map() | keyword()
   @typep upload_result ::
            {:ok, image_upload :: struct(), urls :: %{atom() => String.t()}} | {:error, term()}
 
@@ -135,7 +136,7 @@ defmodule Thumbtack.ImageUpload do
           module :: atom(),
           owner_or_id :: owner_or_id(),
           src_path :: String.t(),
-          args :: map()
+          args :: map_or_keyword()
         ) ::
           upload_result()
   @doc false
@@ -171,7 +172,8 @@ defmodule Thumbtack.ImageUpload do
     {:error, term}
   end
 
-  @spec get_url(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) :: String.t()
+  @spec get_url(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
+          String.t()
   @doc false
   def get_url(module, owner_or_id, args) do
     if path = get_path(module, owner_or_id, args) do
@@ -184,7 +186,7 @@ defmodule Thumbtack.ImageUpload do
   @spec get_path(
           module :: atom(),
           owner_or_id :: owner_or_id(),
-          args :: map()
+          args :: map_or_keyword()
         ) :: String.t() | nil
   @doc false
   def get_path(module, %{id: owner_id} = owner, args) when is_struct(owner) do
@@ -205,7 +207,7 @@ defmodule Thumbtack.ImageUpload do
           module :: atom(),
           owner_id :: :id,
           image_upload_id :: :binary_id,
-          args :: map()
+          args :: map_or_keyword()
         ) :: String.t() | nil
   @doc false
   def get_path(module, owner_id, image_upload_id, args) do
@@ -218,7 +220,7 @@ defmodule Thumbtack.ImageUpload do
     module.path_prefix(owner_id, image_upload_id, opts) <> extension
   end
 
-  @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map()) ::
+  @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   @doc false
   def delete(module, owner_or_id, args)
