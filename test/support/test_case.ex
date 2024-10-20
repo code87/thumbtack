@@ -57,7 +57,7 @@ defmodule Thumbtack.TestCase do
   #     photo-small.jpg     - 322x128
   #     photo-square.heic   - 512x512
   #     photo-tall.png      - 256x718
-  #     photo-wide.png      - 800x318
+  #     photo-wide.jpg      - 800x318
   #
   def load_image_fixture(filename) do
     {:ok, image} =

@@ -43,7 +43,9 @@ defmodule Thumbtack.ImageUpload.ImageOperations do
   def resize(image_or_path, size)
 
   def resize(%Vips.Image{} = image, size) do
-    scale = size / Vips.Image.width(image)
+    {width, height} = {Vips.Image.width(image), Vips.Image.height(image)}
+    {hscale, vscale} = {size / width, size / height}
+    scale = min(hscale, vscale)
 
     if scale < 1.0 do
       Vips.Operation.resize(image, scale)

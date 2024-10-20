@@ -3,8 +3,8 @@
 > This guide is a work in progress.
 
  * `:square` - cuts central square from image, if image is rectangular
- * `:resize` - downscales a square image to a given size, if image is larger
- * `:thumbnail` - generates an image thumbnail from another style image
+ * `{:resize, size}` - resizes image so that larger side (width or height) becomes `size`
+ * `{:thumbnail, size: size, source: style}` - generates an image thumbnail from another style image
 
 
 ### Cut central square
@@ -23,9 +23,11 @@ end
 ```
 
 
-### Downscale square image
+### Resize image
 
 Usage: `{:resize, size}`
+
+This transformation does nothing, if larger side (width or height) of a given image is smaller than `size`.
 
 ```elixir
 def MyApp.UserPhoto do
@@ -34,7 +36,8 @@ def MyApp.UserPhoto do
   @impl true
   def styles do
     [
-      original: [:square, {:resize, @size}]
+      original: [:square]
+      small: [:square, {:resize, @size}]
     ]
   end
 end

@@ -49,13 +49,22 @@ defmodule Thumbtack.ImageUpload.ImageOperationsTest do
   end
 
   describe "resize(image_or_path, size: size)" do
-    test "downscales square image larger than size" do
-      image = load_image_fixture("photo-square.heic")
+    test "width > height" do
+      image = load_image_fixture("photo-wide.jpg")
 
       {:ok, transformed} = ImageOperations.resize(image, 256)
 
       assert Vips.Image.width(transformed) == 256
+      assert Vips.Image.height(transformed) < 256
+    end
+
+    test "height > width" do
+      image = load_image_fixture("photo-tall.png")
+
+      {:ok, transformed} = ImageOperations.resize(image, 256)
+
       assert Vips.Image.height(transformed) == 256
+      assert Vips.Image.width(transformed) < 256
     end
 
     test "does nothing for images smaller or equal to size" do
