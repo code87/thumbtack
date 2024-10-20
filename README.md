@@ -21,7 +21,7 @@ In your `mix.exs`:
 defp deps do
   [
     # from github
-    {:thumbtack, github: "code87/thumbtack", ref: "v0.0.2"},
+    {:thumbtack, github: "code87/thumbtack", ref: "v0.0.3"},
   ]
 end
 ```
