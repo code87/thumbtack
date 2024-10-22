@@ -8,6 +8,7 @@ on:
 
 env:
   MIX_ENV: test
+  VIX_COMPILATION_MODE: PLATFORM_PROVIDED_LIBVIPS
 
 jobs:
   test:
@@ -33,6 +34,11 @@ jobs:
           --health-retries 10
 
     steps:
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install vips-dev vips-heif
+
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
