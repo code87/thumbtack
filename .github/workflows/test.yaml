@@ -1,0 +1,97 @@
+name: Run tests
+
+on:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches: ["develop"]
+
+env:
+  MIX_ENV: test
+  VIX_COMPILATION_MODE: PLATFORM_PROVIDED_LIBVIPS
+
+jobs:
+  test:
+    name: Runtime ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp: ["27.0.1"]
+        elixir: ["1.17.2"]
+
+    services:
+      database:
+        image: postgres:16
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: thumbtack_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install libvips-dev libheif-dev
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache ./deps
+        id: cache-deps
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+
+      - name: Cache ./_build
+        id: cache-build
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: _build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+            ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile
+
+      - name: Run tests
+        run: mix coveralls.html
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: cover/excoveralls.html
+
+      - name: Run credo
+        run: mix credo --strict --mute-exit-status
+
+      - name: Run Hex audit
+        run: mix hex.audit
+
+      - name: Check for unused dependencies
+        run: mix deps.unlock --check-unused
+
