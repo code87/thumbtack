@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.0.4 (Oct 22 2024)
+
+* linter warning fixed
+* repo transaction removed from `m:Thumbtack.ImageUpload`
+
+
 ### 0.0.3 (Oct 20 2024)
 
 * `m:Thumbtack.ImageUpload`:
