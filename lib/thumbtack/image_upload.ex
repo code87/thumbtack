@@ -141,35 +141,22 @@ defmodule Thumbtack.ImageUpload do
           upload_result()
   @doc false
   def upload(module, owner_or_id, src_path, args) do
-    Thumbtack.repo().transaction(fn ->
-      index = Enum.into(args, %{}) |> Map.get(:index, 0)
+    index = Enum.into(args, %{}) |> Map.get(:index, 0)
 
-      Uploader.new(
-        module: module,
-        owner: owner_or_id,
-        styles: module.styles(),
-        src_path: src_path,
-        index: index
-      )
-      |> Uploader.validate_args()
-      |> Uploader.maybe_download_image()
-      |> Uploader.validate_image()
-      |> Uploader.process_styles()
-      |> Uploader.get_or_create_image_upload()
-      |> Uploader.put_to_storage()
-      |> Uploader.verify()
-    end)
-    |> handle_result()
-  end
-
-  defp handle_result(result_or_error)
-
-  defp handle_result({:ok, {:ok, image_upload, urls}}) do
-    {:ok, image_upload, urls}
-  end
-
-  defp handle_result({:error, {:error, term}}) do
-    {:error, term}
+    Uploader.new(
+      module: module,
+      owner: owner_or_id,
+      styles: module.styles(),
+      src_path: src_path,
+      index: index
+    )
+    |> Uploader.validate_args()
+    |> Uploader.maybe_download_image()
+    |> Uploader.validate_image()
+    |> Uploader.process_styles()
+    |> Uploader.get_or_create_image_upload()
+    |> Uploader.put_to_storage()
+    |> Uploader.verify()
   end
 
   @spec get_url(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
