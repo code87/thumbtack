@@ -3,6 +3,7 @@ defmodule Thumbtack.FakeHttpc do
 
   @fixtures_path "test/fixtures"
 
+  @spec get(url :: String.t(), opts :: keyword()) :: :ok | map() | {:error, term()}
   def get(url, stream: path_to_file) do
     path_to_file = to_string(path_to_file)
 
@@ -22,4 +23,6 @@ defmodule Thumbtack.FakeHttpc do
         {:error, error}
     end
   end
+
+  def get(_, _), do: {:error, :bad_request}
 end
