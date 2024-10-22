@@ -87,13 +87,7 @@ jobs:
           path: cover/excoveralls.html
 
       - name: Run credo
-        run: mix credo --strict --mute-exit-status > credo.txt
-
-      - name: Upload credo report
-        uses: actions/upload-artifact@v4
-        with:
-          name: credo
-          path: credo.txt
+        run: mix credo --strict --mute-exit-status
 
       - name: Run Hex audit
         run: mix hex.audit
