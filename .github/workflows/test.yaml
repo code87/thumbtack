@@ -8,10 +8,6 @@ on:
 
 env:
   MIX_ENV: test
-  THUMBTACK_DATABASE_URL: ecto://postgres:postgres@database/thumbtack_test
-
-permissions:
-  contents: read
 
 jobs:
   test:
