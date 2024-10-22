@@ -247,19 +247,5 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
 
       assert {:error, :fail} = Uploader.verify({:error, :fail, uploader})
     end
-
-    test "rolls back transaction on error" do
-      user = insert(:user)
-      uploader = Uploader.new()
-
-      assert {:error, {:error, :fail}} =
-               Thumbtack.repo().transaction(fn ->
-                 {:ok, %UserPhoto{}} = UserPhoto.create_image_upload(user)
-
-                 Uploader.verify({:error, :fail, uploader})
-               end)
-
-      assert is_nil(UserPhoto.get_image_upload(user))
-    end
   end
 end

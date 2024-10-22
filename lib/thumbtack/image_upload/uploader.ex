@@ -199,10 +199,6 @@ defmodule Thumbtack.ImageUpload.Uploader do
   end
 
   def verify({:error, term, %__MODULE__{} = _uploader}) do
-    if Thumbtack.repo().in_transaction?() do
-      Thumbtack.repo().rollback({:error, term})
-    else
-      {:error, term}
-    end
+    {:error, term}
   end
 end
