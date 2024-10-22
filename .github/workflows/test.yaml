@@ -80,8 +80,20 @@ jobs:
       - name: Run tests
         run: mix coveralls.html
 
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: cover/excoveralls.html
+
       - name: Run credo
-        run: mix credo --strict --mute-exit-status
+        run: mix credo --strict --mute-exit-status > credo.txt
+
+      - name: Upload credo report
+        uses: actions/upload-artifact@v4
+        with:
+          name: credo
+          path: credo.txt
 
       - name: Run Hex audit
         run: mix hex.audit
@@ -89,8 +101,3 @@ jobs:
       - name: Check for unused dependencies
         run: mix deps.unlock --check-unused
 
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: cover/excoveralls.html
