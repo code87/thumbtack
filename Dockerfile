@@ -4,17 +4,15 @@ ENV VIX_COMPILATION_MODE=PLATFORM_PROVIDED_LIBVIPS
 
 RUN apk --update add --no-cache \
     build-base \
-    erlang-dev \
     git \
     inotify-tools \
     libstdc++ \
     openssl \
     ncurses-dev \
-    postgresql-client \
+    postgresql16-client \
     libc-dev \
     vips-dev \
-    vips-heif \
-    musl-locales
+    vips-heif 
 
 WORKDIR /app
 
