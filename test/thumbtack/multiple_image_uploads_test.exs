@@ -13,8 +13,8 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "album_photos" do
-      belongs_to :album, Album
-      field :index_number, :integer, default: 0
+      belongs_to(:album, Album)
+      field(:index_number, :integer, default: 0)
     end
 
     @impl true
@@ -84,17 +84,29 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
   describe "delete(owner, opts)" do
     test "deletes image upload", %{album: album} do
-      {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, index: 1)
+      {:ok, %AlbumPhoto{id: photo_id}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-small.jpg", index: 1)
+
+      directory_path =
+        Thumbtack.storage().storage_path() <> "/#{album.id}/1"
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 1}} =
                AlbumPhoto.delete(album, %{index: 1})
+
+      refute File.exists?(directory_path)
     end
 
     test "default index is 0", %{album: album} do
-      {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, %{index: 0})
+      {:ok, %AlbumPhoto{id: photo_id}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-small.jpg", index: 0)
+
+      directory_path =
+        Thumbtack.storage().storage_path() <> "/#{album.id}/0"
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 0}} =
                AlbumPhoto.delete(album)
+
+      refute File.exists?(directory_path)
     end
 
     test "returns error tuple if image not found", %{album: album} do

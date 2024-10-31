@@ -28,7 +28,9 @@ defmodule Thumbtack.Storage.LocalTest do
     end
 
     test "copies existing file and returns URL", %{src_path: src_path} do
-      assert {:ok, "http://localhost:4000/uploads/dummy/file.txt"} = Storage.Local.put(src_path, "/dummy/file.txt")
+      assert {:ok, "http://localhost:4000/uploads/dummy/file.txt"} =
+               Storage.Local.put(src_path, "/dummy/file.txt")
+
       assert {:ok, "Dummy file content"} = File.read("tmp/uploads/dummy/file.txt")
     end
 
@@ -48,13 +50,45 @@ defmodule Thumbtack.Storage.LocalTest do
       :ok = File.mkdir_p("tmp/uploads/dummy")
       :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
 
-      assert {:ok, "http://localhost:4000/uploads/dummy/file.txt"} = Storage.Local.delete("/dummy/file.txt")
+      assert {:ok, "http://localhost:4000/uploads/dummy/file.txt"} =
+               Storage.Local.delete("/dummy/file.txt")
+
       refute File.exists?("tmp/uploads/dummy/file.txt")
     end
 
     test "returns error tuple if file does not exist" do
       refute File.exists?("tmp/uploads/dummy/unknown.txt")
       assert {:error, :enoent} = Storage.Local.delete("dummy/unknown.txt")
+    end
+  end
+
+  describe "delete_folder(path)" do
+    test "deletes existing folder and returns :ok" do
+      :ok = File.mkdir_p("tmp/uploads/dummy")
+      :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
+
+      assert :ok = Storage.Local.delete_folder("/dummy")
+      refute File.exists?("tmp/uploads/dummy")
+    end
+
+    test "deletes existing folder with files and subfolders and returns :ok" do
+      :ok = File.mkdir_p("tmp/uploads/folder-with-files")
+      :ok = File.write("tmp/uploads/folder-with-files/file.txt", "Dummy content")
+      :ok = File.mkdir_p("tmp/uploads/folder-with-files/subfolder")
+      :ok = File.write("tmp/uploads/folder-with-files/subfolder/file.txt", "Dummy content")
+
+      assert :ok = Storage.Local.delete_folder("/folder-with-files/file.txt")
+      refute File.exists?("tmp/uploads/folder-with-files")
+    end
+
+    test "returns error tuple if folder does not exist" do
+      refute File.exists?("tmp/uploads/non-existing-folder")
+      assert {:error, :enoent} = Storage.Local.delete_folder("/non-existing-folder")
+    end
+
+    test "returns error on attempt to remove storage root" do
+      assert {:error, :enoent} = Storage.Local.delete_folder("")
+      assert File.exists?("tmp/uploads")
     end
   end
 end

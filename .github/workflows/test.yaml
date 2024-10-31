@@ -2,9 +2,9 @@ name: Run tests
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["master", "develop"]
   pull_request:
-    branches: ["develop"]
+    types: [opened, synchronize, reopened]
 
 env:
   MIX_ENV: test
@@ -13,7 +13,7 @@ env:
 jobs:
   test:
     name: Runtime ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         otp: ["27.0.1"]
@@ -94,4 +94,3 @@ jobs:
 
       - name: Check for unused dependencies
         run: mix deps.unlock --check-unused
-

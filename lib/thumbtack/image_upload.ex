@@ -219,7 +219,12 @@ defmodule Thumbtack.ImageUpload do
   def delete(module, owner_id, args) do
     case module.get_image_upload(owner_id, fetch_options(args)) do
       %{id: _id} = image_upload ->
-        module.delete_image_upload(image_upload)
+        result = module.delete_image_upload(image_upload)
+
+        get_path(module, owner_id, image_upload.id, args)
+        |> Thumbtack.storage().delete_folder()
+
+        result
 
       nil ->
         {:error, :not_found}

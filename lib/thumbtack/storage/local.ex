@@ -103,5 +103,81 @@ defmodule Thumbtack.Storage.Local do
     end
   end
 
+  @doc """
+  Deletes folder at `path` (relative to configured `:root_url`) if folder is given or takes the file path and deletes the folder where the file is located.
+
+  Returns `:ok` or error tuple.
+
+  Examples:
+      > delete_folder("/photos/123/photo.jpg") # deletes /photos/123 and its contents
+      :ok
+
+      > delete_folder("/photos/123") # deletes /photos/123 and its contents
+      :ok
+
+      > delete_folder("/photos/unknown/") # folder does not exist
+      {:error, :enoent}
+  """
+  @impl true
+  def delete_folder(nil), do: {:error, :enoent}
+
+  def delete_folder(path) do
+    validate_folder_exists(path)
+    |> maybe_extract_folder()
+    |> do_delete_folder()
+  end
+
+  @impl true
+  def rename_folder(old_path, new_path) do
+    # TODO: Implement this
+    old_full_path = Path.join(storage_path(), old_path)
+    new_full_path = Path.join(storage_path(), new_path)
+
+    # case File.rename(old_full_path, new_full_path) do
+    #  :ok ->
+    #    {:ok, url_for_path(new_path)}
+
+    #  {:error, reason} ->
+    #    {:error, reason}
+    # end
+  end
+
+  defp validate_folder_exists(path) do
+    full_path = Path.join(storage_path(), path)
+
+    if full_path != storage_path() && File.exists?(full_path) do
+      {:ok, full_path}
+    else
+      {:error, :enoent}
+    end
+  end
+
+  defp maybe_extract_folder({:error, reason}), do: {:error, reason}
+
+  defp maybe_extract_folder({:ok, path}) do
+    folder_path =
+      if File.dir?(path) do
+        path
+      else
+        Path.dirname(path)
+      end
+
+    {:ok, folder_path}
+  end
+
+  defp do_delete_folder({:error, reason}), do: {:error, reason}
+
+  defp do_delete_folder({:ok, folder_path}) do
+    IO.inspect(folder_path)
+
+    case File.rm_rf(folder_path) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason, _} ->
+        {:error, reason}
+    end
+  end
+
   defp url_for_path(path), do: Path.join(root_url(), path)
 end
