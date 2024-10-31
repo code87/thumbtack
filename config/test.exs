@@ -10,7 +10,8 @@ config :thumbtack,
   ecto_repos: [Thumbtack.Repo]
 
 database_url =
-  System.get_env("THUMBTACK_DATABASE_URL") || "ecto://postgres:postgres@localhost/thumbtack_test"
+  System.get_env("THUMBTACK_DATABASE_URL") ||
+    "ecto://postgres:postgres@thumbtack_db/thumbtack_test"
 
 config :thumbtack, Thumbtack.Repo,
   url: database_url,

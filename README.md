@@ -68,6 +68,12 @@ And once again, for detailed information please check the `Thumbtack.ImageUpload
 Enjoy!
 
 
+## Local development with docker
+
+```bash
+docker-compose run --rm thumbtack
+```
+
 ## Copyright and License
 
 Copyright (c) 2024, Code 87.

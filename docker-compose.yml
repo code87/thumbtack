@@ -1,0 +1,30 @@
+services:
+  database:
+    image: postgres:16.3-alpine
+    container_name: thumbtack_db
+    restart: always
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: thumbtack_test
+    healthcheck:
+      test: "pg_isready --username=postgres"
+      timeout: '5s'
+      retries: 5
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+
+  thumbtack:
+    container_name: thumbtack
+    build: .
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./tmp/_build:/app/_build
+      - ./tmp/deps:/app/deps
+      - ./tmp/uploads:/media/uploads
+      - .:/app
