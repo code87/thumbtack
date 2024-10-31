@@ -27,7 +27,6 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: thumbtack_test
-          POSTGRES_HOST: thumbtack_db
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
