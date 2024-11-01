@@ -95,6 +95,10 @@ defmodule Thumbtack.Storage.LocalTest do
       assert {:error, :enoent} = Storage.Local.delete_folder("")
       assert File.exists?("tmp/uploads")
     end
+
+    test "returns error if nil is given" do
+      assert {:error, :enoent} = Storage.Local.delete_folder(nil)
+    end
   end
 
   describe "rename_folder(old_path, new_path)" do
@@ -132,6 +136,30 @@ defmodule Thumbtack.Storage.LocalTest do
       :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
 
       assert {:error, :enoent} = Storage.Local.rename_folder("/dummy/file.txt", "/new-dummy")
+    end
+
+    test "returns error if nil is given" do
+      assert {:error, :enoent} = Storage.Local.rename_folder(nil, "/new-dummy")
+    end
+
+    test "returns error if new path is nil" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/dummy")
+      end)
+
+      :ok = File.mkdir_p("tmp/uploads/dummy")
+
+      assert {:error, :enoent} = Storage.Local.rename_folder("/dummy", nil)
+    end
+
+    test "returns ok if paths are the same without rename" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/dummy")
+      end)
+
+      :ok = File.mkdir_p("tmp/uploads/dummy")
+
+      assert {:ok, _} = Storage.Local.rename_folder("/dummy", "/dummy")
     end
   end
 end

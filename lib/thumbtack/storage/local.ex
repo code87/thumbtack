@@ -148,7 +148,7 @@ defmodule Thumbtack.Storage.Local do
     do: {:error, :enoent}
 
   def rename_folder(old_path, new_path) when old_path == new_path,
-    do: {:ok, url_for_path(new_path)}
+    do: {:ok, Path.join(storage_path(), new_path)}
 
   def rename_folder(old_path, new_path) do
     old_full_path = Path.join(storage_path(), old_path)
