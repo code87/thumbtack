@@ -130,8 +130,8 @@ defmodule Thumbtack.Storage.Local do
   @impl true
   def rename_folder(old_path, new_path) do
     # TODO: Implement this
-    old_full_path = Path.join(storage_path(), old_path)
-    new_full_path = Path.join(storage_path(), new_path)
+    # old_full_path = Path.join(storage_path(), old_path)
+    # new_full_path = Path.join(storage_path(), new_path)
 
     # case File.rename(old_full_path, new_full_path) do
     #  :ok ->
@@ -168,8 +168,6 @@ defmodule Thumbtack.Storage.Local do
   defp do_delete_folder({:error, reason}), do: {:error, reason}
 
   defp do_delete_folder({:ok, folder_path}) do
-    IO.inspect(folder_path)
-
     case File.rm_rf(folder_path) do
       {:ok, _} ->
         :ok

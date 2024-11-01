@@ -217,17 +217,34 @@ defmodule Thumbtack.ImageUpload do
   end
 
   def delete(module, owner_id, args) do
-    case module.get_image_upload(owner_id, fetch_options(args)) do
-      %{id: _id} = image_upload ->
-        result = module.delete_image_upload(image_upload)
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:image_upload, fn _repo, _changes ->
+      case module.get_image_upload(owner_id, fetch_options(args)) do
+        %{id: _id} = image_upload ->
+          {:ok, image_upload}
 
-        get_path(module, owner_id, image_upload.id, args)
-        |> Thumbtack.storage().delete_folder()
-
-        result
-
-      nil ->
-        {:error, :not_found}
+        nil ->
+          {:error, :not_found}
+      end
+    end)
+    |> Ecto.Multi.run(:delete, fn _repo, %{image_upload: image_upload} ->
+      module.delete_image_upload(image_upload)
+    end)
+    |> Ecto.Multi.run(:delete_folder, fn _repo, %{delete: image_upload} ->
+      get_path(module, owner_id, image_upload.id, args)
+      |> Thumbtack.storage().delete_folder()
+      |> case do
+        :ok -> {:ok, image_upload}
+        error -> {:error, error}
+      end
+    end)
+    |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
+      {:ok, image_upload}
+    end)
+    |> Thumbtack.Repo.transaction()
+    |> case do
+      {:ok, %{delete: image_upload}} -> {:ok, image_upload}
+      {:error, _step, reason, _changes} -> {:error, reason}
     end
   end
 
