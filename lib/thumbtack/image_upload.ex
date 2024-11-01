@@ -235,7 +235,7 @@ defmodule Thumbtack.ImageUpload do
       |> Thumbtack.storage().delete_folder()
       |> case do
         :ok -> {:ok, image_upload}
-        error -> {:error, error}
+        {:error, error} -> {:error, error}
       end
     end)
     |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
