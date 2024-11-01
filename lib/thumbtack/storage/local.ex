@@ -104,65 +104,84 @@ defmodule Thumbtack.Storage.Local do
   end
 
   @doc """
-  Deletes folder at `path` (relative to configured `:root_url`) if folder is given or takes the file path and deletes the folder where the file is located.
+  Deletes folder at `path` (relative to configured `:root_url`) if folder exists.
 
   Returns `:ok` or error tuple.
 
   Examples:
-      > delete_folder("/photos/123/photo.jpg") # deletes /photos/123 and its contents
-      :ok
-
       > delete_folder("/photos/123") # deletes /photos/123 and its contents
       :ok
 
       > delete_folder("/photos/unknown/") # folder does not exist
       {:error, :enoent}
+
+      > delete_folder("/photos/123/photo.jpg") # path is not a folder
+      {:error, :enoent}
+
   """
   @impl true
   def delete_folder(nil), do: {:error, :enoent}
 
   def delete_folder(path) do
-    validate_folder_exists(path)
-    |> maybe_extract_folder()
+    validate_folder_on_delete(path)
     |> do_delete_folder()
   end
 
+  @doc """
+  Renames folder from `old_path` to `new_path` (relative to configured `:root_url`) if `old_path` folder exists.
+
+  Returns `:ok` or error tuple.
+
+  Examples:
+      > rename_folder("/photos/123", "/photos/321") # renames /photos/123 to /photos/321
+      :ok
+
+      > rename_folder("/photos/unknown/", nil)
+      {:error, :enoent}
+
+      > rename_folder("/photos/123/photo.jpg", "/photos/321") # path is not a folder
+      {:error, :enoent}
+
+  """
   @impl true
+  def rename_folder(old_path, new_path) when is_nil(old_path) or is_nil(new_path),
+    do: {:error, :enoent}
+
+  def rename_folder(old_path, new_path) when old_path == new_path,
+    do: {:ok, url_for_path(new_path)}
+
   def rename_folder(old_path, new_path) do
-    # TODO: Implement this
-    # old_full_path = Path.join(storage_path(), old_path)
-    # new_full_path = Path.join(storage_path(), new_path)
+    old_full_path = Path.join(storage_path(), old_path)
+    new_full_path = Path.join(storage_path(), new_path)
 
-    # case File.rename(old_full_path, new_full_path) do
-    #  :ok ->
-    #    {:ok, url_for_path(new_path)}
-
-    #  {:error, reason} ->
-    #    {:error, reason}
-    # end
+    validate_folders_on_rename(old_full_path, new_full_path)
+    |> do_rename_folder()
   end
 
-  defp validate_folder_exists(path) do
+  defp validate_folders_on_rename(old_full_path, new_full_path) do
+    if File.exists?(old_full_path) && File.dir?(old_full_path) && old_full_path != storage_path() &&
+         new_full_path != storage_path() &&
+         old_full_path != new_full_path do
+      {:ok, {old_full_path, new_full_path}}
+    else
+      {:error, :enoent}
+    end
+  end
+
+  defp validate_folder_on_delete(path) do
     full_path = Path.join(storage_path(), path)
 
-    if full_path != storage_path() && File.exists?(full_path) do
+    if File.exists?(full_path) && File.dir?(full_path) && full_path != storage_path() do
       {:ok, full_path}
     else
       {:error, :enoent}
     end
   end
 
-  defp maybe_extract_folder({:error, reason}), do: {:error, reason}
+  defp do_rename_folder({:error, reason}), do: {:error, reason}
 
-  defp maybe_extract_folder({:ok, path}) do
-    folder_path =
-      if File.dir?(path) do
-        path
-      else
-        Path.dirname(path)
-      end
-
-    {:ok, folder_path}
+  defp do_rename_folder({:ok, {old_full_path, new_full_path}}) do
+    File.rename(old_full_path, new_full_path)
   end
 
   defp do_delete_folder({:error, reason}), do: {:error, reason}

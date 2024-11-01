@@ -64,6 +64,10 @@ defmodule Thumbtack.Storage.LocalTest do
 
   describe "delete_folder(path)" do
     test "deletes existing folder and returns :ok" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/dummy")
+      end)
+
       :ok = File.mkdir_p("tmp/uploads/dummy")
       :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
 
@@ -71,14 +75,15 @@ defmodule Thumbtack.Storage.LocalTest do
       refute File.exists?("tmp/uploads/dummy")
     end
 
-    test "deletes existing folder with files and subfolders and returns :ok" do
+    test "returns error if given path is not folder" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/folder-with-files")
+      end)
+
       :ok = File.mkdir_p("tmp/uploads/folder-with-files")
       :ok = File.write("tmp/uploads/folder-with-files/file.txt", "Dummy content")
-      :ok = File.mkdir_p("tmp/uploads/folder-with-files/subfolder")
-      :ok = File.write("tmp/uploads/folder-with-files/subfolder/file.txt", "Dummy content")
 
-      assert :ok = Storage.Local.delete_folder("/folder-with-files/file.txt")
-      refute File.exists?("tmp/uploads/folder-with-files")
+      assert {:error, :enoent} = Storage.Local.delete_folder("/folder-with-files/file.txt")
     end
 
     test "returns error tuple if folder does not exist" do
@@ -89,6 +94,44 @@ defmodule Thumbtack.Storage.LocalTest do
     test "returns error on attempt to remove storage root" do
       assert {:error, :enoent} = Storage.Local.delete_folder("")
       assert File.exists?("tmp/uploads")
+    end
+  end
+
+  describe "rename_folder(old_path, new_path)" do
+    test "renames existing folder and returns :ok" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/new-dummy")
+      end)
+
+      :ok = File.mkdir_p("tmp/uploads/dummy")
+      :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
+
+      assert :ok = Storage.Local.rename_folder("/dummy", "/new-dummy")
+      refute File.exists?("tmp/uploads/dummy")
+      assert File.exists?("tmp/uploads/new-dummy")
+    end
+
+    test "returns error tuple if folder does not exist" do
+      refute File.exists?("tmp/uploads/non-existing-folder")
+
+      assert {:error, :enoent} =
+               Storage.Local.rename_folder("/non-existing-folder", "/new-folder")
+    end
+
+    test "returns error on attempt to rename storage root" do
+      assert {:error, :enoent} = Storage.Local.rename_folder("", "/new-dummy")
+      assert File.exists?("tmp/uploads")
+    end
+
+    test "retuns error on attempt to rename file" do
+      on_exit(fn ->
+        {:ok, _} = File.rm_rf("tmp/uploads/dummy")
+      end)
+
+      :ok = File.mkdir_p("tmp/uploads/dummy")
+      :ok = File.write("tmp/uploads/dummy/file.txt", "Dummy content")
+
+      assert {:error, :enoent} = Storage.Local.rename_folder("/dummy/file.txt", "/new-dummy")
     end
   end
 end

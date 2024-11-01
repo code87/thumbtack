@@ -94,16 +94,15 @@ adds these functions to it:
 
  * `max_images()` - returns configured `:max_images` value (see schema definition above)
 
- * `upload(user, src_path, index: index)` - takes image from file located at `src_path`
+ * `upload(album, src_path, index: index)` - takes image from file located at `src_path`
  (usually temporary file), processes source image and uploads it to the storage. It assigns
  `:index` to the image and creates a database record
 
- * `get_url(user, index: index, style: style)` - returns an image URL for a given `style` and `index`
+ * `get_url(album, index: index, style: style)` - returns an image URL for a given `style` and `index`
    * styles are defined in `styles()` callback you implement in your schema module
-   * `index` is an integer in the range of `0..AlbumPhoto.max_images()-1`
+   * `index` is an integer in the range of `0..AlbumPhoto.max_images() - 1`
 
- * `delete(user, index: index)` - deletes image associated with given `user` and `index` from storage
- and the corresponding record from database.
+ * `delete(album, index: index)` - deletes image associated with given `album` and `index` from database and storage. If `index < AlbumPhoto.max_images() - 1`, it shifts all images with indexes greater than `index` to the left if any.
 
  You can use those functions in your domain code:
 
