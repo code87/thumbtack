@@ -32,21 +32,22 @@ defmodule Thumbtack.ImageUpload.Schema do
 
   def shift_indexes(module, owner_id, index, callback) do
     require Ecto.Query
+    import Ecto.Query
 
     conditions =
-      Ecto.Query.dynamic(
+      dynamic(
         [module],
         field(module, ^module.foreign_key()) == ^owner_id and module.index_number > ^index
       )
 
-    order_by = [asc: Ecto.Query.dynamic([module], module.index_number)]
+    order_by = [asc: dynamic([module], module.index_number)]
 
-    Ecto.Query.from(module, where: ^conditions, order_by: ^order_by)
+    from(module, where: ^conditions, order_by: ^order_by)
     |> Thumbtack.repo().all()
     |> Enum.each(fn image_upload ->
-      conditions = Ecto.Query.dynamic([module], module.id == ^image_upload.id)
+      conditions = dynamic([module], module.id == ^image_upload.id)
 
-      Ecto.Query.from(module,
+      from(module,
         where: ^conditions,
         update: [set: [index_number: fragment("index_number - 1")]]
       )
@@ -141,10 +142,13 @@ defmodule Thumbtack.ImageUpload.Schema do
 
       @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
               Ecto.Changeset.t()
+      @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
+              Ecto.Changeset.t()
       @doc false
       def image_upload_changeset(struct, owner_id, args \\ %{}) do
         struct
         |> put_changes(owner_id, args)
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
         |> validate_photo_uniqueness()
         |> maybe_validate_index_number()
       end

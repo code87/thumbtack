@@ -15,6 +15,7 @@ defmodule Thumbtack.MultipleImageUploadsTest do
     schema "album_photos" do
       belongs_to(:album, Album)
       field(:index_number, :integer, default: 0)
+      field(:last_updated_at, :utc_datetime)
     end
 
     @impl true
@@ -60,21 +61,27 @@ defmodule Thumbtack.MultipleImageUploadsTest do
     test "returns an image url for a given style", %{album: album} do
       {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, %{index: 1})
 
-      assert "http://localhost:4000/uploads/#{album.id}/1/#{photo_id}-original.jpg" ==
+      timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      assert "http://localhost:4000/uploads/#{album.id}/1/#{photo_id}-original.jpg?v=#{timestamp}" ==
                AlbumPhoto.get_url(album, index: 1, style: :original)
     end
 
     test "default style if original", %{album: album} do
       {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, index: 1)
 
-      assert "http://localhost:4000/uploads/#{album.id}/1/#{photo_id}-original.jpg" ==
+      timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      assert "http://localhost:4000/uploads/#{album.id}/1/#{photo_id}-original.jpg?v=#{timestamp}" ==
                AlbumPhoto.get_url(album, %{index: 1})
     end
 
     test "default index is 0", %{album: album} do
       {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album)
 
-      assert "http://localhost:4000/uploads/#{album.id}/0/#{photo_id}-original.jpg" ==
+      timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      assert "http://localhost:4000/uploads/#{album.id}/0/#{photo_id}-original.jpg?v=#{timestamp}" ==
                AlbumPhoto.get_url(album)
     end
 

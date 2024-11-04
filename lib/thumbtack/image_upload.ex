@@ -182,7 +182,8 @@ defmodule Thumbtack.ImageUpload do
 
   def get_path(module, owner_id, args) do
     case module.get_image_upload(owner_id, args) do
-      %{id: image_upload_id} ->
+      %{id: image_upload_id, last_updated_at: last_updated_at} ->
+        args = put_in(args, [:last_updated_at], last_updated_at)
         get_path(module, owner_id, image_upload_id, args)
 
       nil ->
@@ -204,7 +205,9 @@ defmodule Thumbtack.ImageUpload do
       module.image_upload_format()
       |> Thumbtack.Image.format_extension()
 
-    module.path_prefix(owner_id, image_upload_id, opts) <> extension
+    (module.path_prefix(owner_id, image_upload_id, opts) <>
+       extension)
+    |> maybe_append_timestamp(opts.last_updated_at)
   end
 
   @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
@@ -273,8 +276,23 @@ defmodule Thumbtack.ImageUpload do
 
     %{
       index: Map.get(args_map, :index, 0),
-      style: Map.get(args_map, :style, :original)
+      style: Map.get(args_map, :style, :original),
+      last_updated_at: Map.get(args_map, :last_updated_at)
     }
+  end
+
+  defp maybe_append_timestamp(path, last_updated_at) do
+    if last_updated_at do
+      path <> "?v=" <> get_timestamp(last_updated_at)
+    else
+      path
+    end
+  end
+
+  defp get_timestamp(last_used_at) do
+    last_used_at
+    |> DateTime.to_unix()
+    |> Integer.to_string()
   end
 
   #

@@ -11,6 +11,7 @@ defmodule Thumbtack.SingleImageUploadTest do
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "user_photos" do
       belongs_to(:user, User)
+      field(:last_updated_at, :utc_datetime)
     end
 
     @impl true
@@ -51,14 +52,18 @@ defmodule Thumbtack.SingleImageUploadTest do
     test "returns an image url for a given style", %{user: user} do
       {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
 
-      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-thumb.png" ==
+      timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-thumb.png?v=#{timestamp}" ==
                UserPhoto.get_url(user, style: :thumb)
     end
 
     test "default style if original", %{user: user} do
       {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
 
-      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-original.png" ==
+      timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      assert "http://localhost:4000/uploads/#{user.id}/#{photo_id}-original.png?v=#{timestamp}" ==
                UserPhoto.get_url(user)
     end
 

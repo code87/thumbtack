@@ -10,8 +10,9 @@ defmodule Thumbtack.ImageUpload.MultipleImagesSchemaTest do
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "album_photos" do
-      belongs_to :album, Album
-      field :index_number, :integer, default: 0
+      belongs_to(:album, Album)
+      field(:index_number, :integer, default: 0)
+      field(:last_updated_at, :utc_datetime)
     end
   end
 

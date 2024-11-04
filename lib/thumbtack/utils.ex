@@ -8,4 +8,12 @@ defmodule Thumbtack.Utils do
     System.tmp_dir()
     |> Path.join(filename)
   end
+
+  @spec timestamp() :: DateTime.t()
+  @doc """
+  Returns current UTC time.
+  """
+  def timestamp() do
+    DateTime.now!("Etc/UTC") |> DateTime.truncate(:second)
+  end
 end

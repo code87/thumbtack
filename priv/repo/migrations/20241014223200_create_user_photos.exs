@@ -5,6 +5,7 @@ defmodule Thumbtack.Repo.Migrations.CreateUserPhotos do
     create table("user_photos", primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :user_id, references(:users), null: false
+      add :last_updated_at, :utc_datetime, default: fragment("now()"), null: false
     end
 
     create unique_index(:user_photos, [:user_id])
