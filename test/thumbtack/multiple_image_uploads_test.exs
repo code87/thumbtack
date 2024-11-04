@@ -13,8 +13,8 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "album_photos" do
-      belongs_to :album, Album
-      field :index_number, :integer, default: 0
+      belongs_to(:album, Album)
+      field(:index_number, :integer, default: 0)
     end
 
     @impl true
@@ -25,7 +25,8 @@ defmodule Thumbtack.MultipleImageUploadsTest do
     @impl true
     def styles do
       [
-        original: [:square]
+        original: [:square],
+        sm: [:square, {:resize, 256}]
       ]
     end
   end
@@ -84,17 +85,29 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
   describe "delete(owner, opts)" do
     test "deletes image upload", %{album: album} do
-      {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, index: 1)
+      {:ok, %AlbumPhoto{id: photo_id}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-small.jpg", index: 1)
+
+      directory_path =
+        Thumbtack.storage().storage_path() <> "/#{album.id}/1"
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 1}} =
                AlbumPhoto.delete(album, %{index: 1})
+
+      refute File.exists?(directory_path)
     end
 
     test "default index is 0", %{album: album} do
-      {:ok, %AlbumPhoto{id: photo_id}} = AlbumPhoto.create_image_upload(album, %{index: 0})
+      {:ok, %AlbumPhoto{id: photo_id}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-small.jpg")
+
+      directory_path =
+        Thumbtack.storage().storage_path() <> "/#{album.id}/0"
 
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 0}} =
                AlbumPhoto.delete(album)
+
+      refute File.exists?(directory_path)
     end
 
     test "returns error tuple if image not found", %{album: album} do
@@ -103,6 +116,34 @@ defmodule Thumbtack.MultipleImageUploadsTest do
 
     test "returns error tuple on invalid index", %{album: album} do
       assert {:error, :not_found} = AlbumPhoto.delete(album, %{index: 3})
+    end
+
+    test "delete original and shifts other images", %{album: album} do
+      {:ok, %AlbumPhoto{id: photo_id_1}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-small.jpg", index: 0)
+
+      {:ok, %AlbumPhoto{id: photo_id_2}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-wide.jpg", index: 1)
+
+      {:ok, %AlbumPhoto{id: photo_id_3}, _} =
+        AlbumPhoto.upload(album.id, "test/fixtures/photo-tall.png", index: 2)
+
+      assert {:ok, %AlbumPhoto{id: ^photo_id_1, index_number: 0}} =
+               AlbumPhoto.delete(album, %{index: 0})
+
+      assert File.exists?(Thumbtack.storage().storage_path() <> "/#{album.id}/0")
+      assert File.exists?(Thumbtack.storage().storage_path() <> "/#{album.id}/1")
+      refute File.exists?(Thumbtack.storage().storage_path() <> "/#{album.id}/2")
+
+      assert Path.wildcard(Thumbtack.storage().storage_path() <> "/#{album.id}/0/*") == [
+               Thumbtack.storage().storage_path() <> "/#{album.id}/0/#{photo_id_2}-original.jpg",
+               Thumbtack.storage().storage_path() <> "/#{album.id}/0/#{photo_id_2}-sm.jpg"
+             ]
+
+      assert Path.wildcard(Thumbtack.storage().storage_path() <> "/#{album.id}/1/*") == [
+               Thumbtack.storage().storage_path() <> "/#{album.id}/1/#{photo_id_3}-original.jpg",
+               Thumbtack.storage().storage_path() <> "/#{album.id}/1/#{photo_id_3}-sm.jpg"
+             ]
     end
   end
 end

@@ -32,7 +32,8 @@ defmodule Thumbtack.Storage do
       {:ok, "https://my-bucket.s3.amazonaws.com/uploads/users/123/info.txt"}
 
   """
-  @callback put(src_path :: String.t(), dest_path :: String.t()) :: {:ok, String.t()} | {:error, term()}
+  @callback put(src_path :: String.t(), dest_path :: String.t()) ::
+              {:ok, String.t()} | {:error, term()}
 
   @doc """
   This callback should delete a file located at `path` in the storage (relative to `root_url()`).
@@ -50,4 +51,23 @@ defmodule Thumbtack.Storage do
 
   """
   @callback delete(path :: String.t()) :: {:ok, String.t()} | {:error, term()}
+
+  @doc """
+  This callback should delete folder where file is located at `path` in the storage (relative to `root_url()`).
+
+  Returns:
+    * `:ok` if folder was deleted
+    * `{:error, reason}` if folder was not deleted
+  """
+  @callback delete_folder(path :: String.t()) :: :ok | {:error, term()}
+
+  @doc """
+  This callback should rename folder located at `old_path` to `new_path` in the storage (relative to `root_url()`).
+
+  Returns:
+    * `:ok` if folder was renamed
+    * `{:error, reason}` if folder was not renamed
+  """
+  @callback rename_folder(old_path :: String.t(), new_path :: String.t()) ::
+              :ok | {:error, term()}
 end

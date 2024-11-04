@@ -10,7 +10,7 @@ defmodule Thumbtack.SingleImageUploadTest do
 
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "user_photos" do
-      belongs_to :user, User
+      belongs_to(:user, User)
     end
 
     @impl true
@@ -69,7 +69,8 @@ defmodule Thumbtack.SingleImageUploadTest do
 
   describe "delete(module, owner)" do
     test "deletes image upload", %{user: user} do
-      {:ok, %UserPhoto{id: photo_id}} = UserPhoto.create_image_upload(user)
+      {:ok, %UserPhoto{id: photo_id}, _} =
+        UserPhoto.upload(user.id, "test/fixtures/photo-small.jpg", index: 0)
 
       assert {:ok, %UserPhoto{id: ^photo_id}} = UserPhoto.delete(user)
     end

@@ -28,3 +28,5 @@ thumbtack-*.tar
 .elixir_ls/
 .DS_Store
 .env
+
+credo.txt

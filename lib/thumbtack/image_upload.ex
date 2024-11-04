@@ -217,13 +217,55 @@ defmodule Thumbtack.ImageUpload do
   end
 
   def delete(module, owner_id, args) do
-    case module.get_image_upload(owner_id, fetch_options(args)) do
-      %{id: _id} = image_upload ->
-        module.delete_image_upload(image_upload)
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:image_upload, fn _repo, _changes ->
+      case module.get_image_upload(owner_id, fetch_options(args)) do
+        %{id: _id} = image_upload ->
+          {:ok, image_upload}
 
-      nil ->
-        {:error, :not_found}
+        nil ->
+          {:error, :not_found}
+      end
+    end)
+    |> Ecto.Multi.run(:delete, fn _repo, %{image_upload: image_upload} ->
+      module.delete_image_upload(image_upload)
+    end)
+    |> Ecto.Multi.run(:delete_folder, fn _repo, %{delete: image_upload} ->
+      get_dir_name(module, owner_id, image_upload.id, args)
+      |> Thumbtack.storage().delete_folder()
+      |> case do
+        :ok -> {:ok, image_upload}
+        {:error, error} -> {:error, error}
+      end
+    end)
+    |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
+      Thumbtack.ImageUpload.Schema.shift_indexes(
+        module,
+        owner_id,
+        Map.get(image_upload, :index_number, nil),
+        fn updated_image_index ->
+          original_dir_name =
+            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index})
+
+          new_dir_name =
+            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index - 1})
+
+          Thumbtack.storage().rename_folder(original_dir_name, new_dir_name)
+        end
+      )
+
+      {:ok, image_upload}
+    end)
+    |> Thumbtack.repo().transaction()
+    |> case do
+      {:ok, %{delete: image_upload}} -> {:ok, image_upload}
+      {:error, _step, reason, _changes} -> {:error, reason}
     end
+  end
+
+  defp get_dir_name(module, owner_id, image_upload_id, args) do
+    module.path_prefix(owner_id, image_upload_id, fetch_options(args))
+    |> Path.dirname()
   end
 
   defp fetch_options(args) do

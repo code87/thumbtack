@@ -27,6 +27,35 @@ defmodule Thumbtack.ImageUpload.Schema do
     Thumbtack.repo().get_by(module, module.query_params(owner_id, args_to_map(args)))
   end
 
+  # in case of single upload index will be nil, so nothing to shift
+  def shift_indexes(_module, _owner_id, nil, _callback), do: :ok
+
+  def shift_indexes(module, owner_id, index, callback) do
+    require Ecto.Query
+
+    conditions =
+      Ecto.Query.dynamic(
+        [module],
+        field(module, ^module.foreign_key()) == ^owner_id and module.index_number > ^index
+      )
+
+    order_by = [asc: Ecto.Query.dynamic([module], module.index_number)]
+
+    Ecto.Query.from(module, where: ^conditions, order_by: ^order_by)
+    |> Thumbtack.repo().all()
+    |> Enum.each(fn image_upload ->
+      conditions = Ecto.Query.dynamic([module], module.id == ^image_upload.id)
+
+      Ecto.Query.from(module,
+        where: ^conditions,
+        update: [set: [index_number: fragment("index_number - 1")]]
+      )
+      |> Thumbtack.repo().update_all([])
+
+      callback.(image_upload.index_number)
+    end)
+  end
+
   defp args_to_map(args), do: Enum.into(args, %{})
 
   @doc false
@@ -56,6 +85,12 @@ defmodule Thumbtack.ImageUpload.Schema do
       Returns a maximum number of image uploads that can be associated with a parent model.
       """
       def max_images, do: unquote(max_images)
+
+      @spec foreign_key() :: atom()
+      @doc """
+      Returns a foreign key name that is used to associate image uploads with a parent model.
+      """
+      def foreign_key, do: unquote(foreign_key)
 
       @spec create_image_upload(owner_or_id :: struct | :id, args :: map() | keyword()) ::
               {:ok, struct} | {:error, Ecto.Changeset.t()}
@@ -104,7 +139,8 @@ defmodule Thumbtack.ImageUpload.Schema do
         Thumbtack.ImageUpload.Schema.delete(image_upload)
       end
 
-      @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) :: Ecto.Changeset.t()
+      @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
+              Ecto.Changeset.t()
       @doc false
       def image_upload_changeset(struct, owner_id, args \\ %{}) do
         struct
