@@ -1,3 +1,5 @@
+File.mkdir_p("./tmp/uploads")
+
 Thumbtack.Repo.start_link()
 
 ExUnit.start()

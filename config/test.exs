@@ -20,3 +20,7 @@ config :thumbtack, Thumbtack.Repo,
 config :thumbtack,
   repo: Thumbtack.Repo,
   storage: Thumbtack.Storage.Local
+
+config :thumbtack, Thumbtack.Storage.Local,
+  root_url: "http://localhost:4000/uploads",
+  storage_path: "tmp/uploads"

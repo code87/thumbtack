@@ -256,7 +256,7 @@ defmodule Thumbtack.ImageUpload do
 
       {:ok, image_upload}
     end)
-    |> Thumbtack.Repo.transaction()
+    |> Thumbtack.repo().transaction()
     |> case do
       {:ok, %{delete: image_upload}} -> {:ok, image_upload}
       {:error, _step, reason, _changes} -> {:error, reason}
