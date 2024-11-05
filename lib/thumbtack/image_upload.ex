@@ -222,39 +222,20 @@ defmodule Thumbtack.ImageUpload do
   def delete(module, owner_id, args) do
     Ecto.Multi.new()
     |> Ecto.Multi.run(:image_upload, fn _repo, _changes ->
-      case module.get_image_upload(owner_id, fetch_options(args)) do
-        %{id: _id} = image_upload ->
-          {:ok, image_upload}
-
-        nil ->
-          {:error, :not_found}
-      end
+      get_image_upload(module, owner_id, args)
     end)
     |> Ecto.Multi.run(:delete, fn _repo, %{image_upload: image_upload} ->
       module.delete_image_upload(image_upload)
     end)
     |> Ecto.Multi.run(:delete_folder, fn _repo, %{delete: image_upload} ->
-      get_dir_name(module, owner_id, image_upload.id, args)
-      |> Thumbtack.storage().delete_folder()
-      |> case do
-        :ok -> {:ok, image_upload}
-        {:error, error} -> {:error, error}
-      end
+      delete_folder(module, owner_id, image_upload, args)
     end)
     |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
       Thumbtack.ImageUpload.Schema.shift_indexes(
         module,
         owner_id,
-        Map.get(image_upload, :index_number, nil),
-        fn updated_image_index ->
-          original_dir_name =
-            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index})
-
-          new_dir_name =
-            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index - 1})
-
-          Thumbtack.storage().rename_folder(original_dir_name, new_dir_name)
-        end
+        Map.get(image_upload, :index_number),
+        &rename_folder(module, owner_id, image_upload, &1)
       )
 
       {:ok, image_upload}
@@ -264,6 +245,35 @@ defmodule Thumbtack.ImageUpload do
       {:ok, %{delete: image_upload}} -> {:ok, image_upload}
       {:error, _step, reason, _changes} -> {:error, reason}
     end
+  end
+
+  defp get_image_upload(module, owner_id, args) do
+    case module.get_image_upload(owner_id, args) do
+      %{id: _id} = image_upload ->
+        {:ok, image_upload}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
+  defp delete_folder(module, owner_id, image_upload, args) do
+    get_dir_name(module, owner_id, image_upload.id, args)
+    |> Thumbtack.storage().delete_folder()
+    |> case do
+      :ok -> {:ok, image_upload}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  defp rename_folder(module, owner_id, image_upload, index) do
+    original_dir_name =
+      get_dir_name(module, owner_id, image_upload.id, %{index: index})
+
+    new_dir_name =
+      get_dir_name(module, owner_id, image_upload.id, %{index: index - 1})
+
+    Thumbtack.storage().rename_folder(original_dir_name, new_dir_name)
   end
 
   defp get_dir_name(module, owner_id, image_upload_id, args) do
