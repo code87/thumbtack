@@ -48,14 +48,9 @@ defmodule Thumbtack.ImageUpload.Schema do
   end
 
   def update_last_updated_at(module, image_upload) do
-    res =
-      image_upload
-      |> module.update_last_updated_at_changeset()
-      |> Thumbtack.repo().update!()
-
-    IO.inspect(res)
-
-    res
+    image_upload
+    |> module.update_last_updated_at_changeset()
+    |> Thumbtack.repo().update!()
   end
 
   @doc false
