@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.0.5 (Nov 5 2024)
+* timestamps added to image urls
+* multiple images now shift indexes on delete
+
 ### 0.0.4 (Oct 22 2024)
 
 * linter warning fixed
