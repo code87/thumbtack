@@ -3,6 +3,8 @@ defmodule Thumbtack.TestCase do
 
   alias Vix.Vips
 
+  alias Ecto.Adapters.SQL.Sandbox
+
   use ExUnit.CaseTemplate
 
   using do
@@ -15,8 +17,8 @@ defmodule Thumbtack.TestCase do
   end
 
   setup tags do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Thumbtack.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    pid = Sandbox.start_owner!(Thumbtack.Repo, shared: not tags[:async])
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
     :ok
   end
 
@@ -25,6 +27,7 @@ defmodule Thumbtack.TestCase do
 
     Application.put_env(:thumbtack, :repo, Thumbtack.Repo)
     Application.put_env(:thumbtack, :storage, Thumbtack.Storage.Local)
+
     Application.put_env(:thumbtack, Thumbtack.Storage.Local,
       root_url: "http://localhost:4000/uploads",
       storage_path: "tmp/uploads"

@@ -9,11 +9,11 @@ defmodule Thumbtack.Utils do
     |> Path.join(filename)
   end
 
-  @spec timestamp() :: DateTime.t()
+  @spec timestamp :: DateTime.t()
   @doc """
   Returns current UTC time.
   """
-  def timestamp() do
+  def timestamp do
     DateTime.now!("Etc/UTC") |> DateTime.truncate(:second)
   end
 end

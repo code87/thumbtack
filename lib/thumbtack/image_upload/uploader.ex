@@ -24,9 +24,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
   #   * Return image upload and style urls
   #
 
-  alias Thumbtack.ImageUpload.Style
-  alias Thumbtack.ImageUpload.Transformation
-
+  alias Thumbtack.ImageUpload.{Style, Transformation, Schema}
   alias Vix.Vips
 
   @type t :: %__MODULE__{
@@ -191,7 +189,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
 
     %__MODULE__{
       uploader
-      | image_upload: Thumbtack.ImageUpload.Schema.update_last_updated_at(module, image_upload)
+      | image_upload: Schema.update_last_updated_at(module, image_upload)
     }
   end
 
