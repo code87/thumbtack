@@ -156,6 +156,7 @@ defmodule Thumbtack.ImageUpload do
     |> Uploader.process_styles()
     |> Uploader.get_or_create_image_upload()
     |> Uploader.put_to_storage()
+    |> Uploader.update_last_updated_at()
     |> Uploader.verify()
   end
 

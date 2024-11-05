@@ -47,6 +47,17 @@ defmodule Thumbtack.ImageUpload.Schema do
     |> Enum.each(&shift_image_upload(module, &1, callback))
   end
 
+  def update_last_updated_at(module, image_upload) do
+    image_upload
+    |> module.update_last_updated_at()
+    |> Thumbtack.repo().update!()
+  end
+
+  @doc false
+  def delete(struct) do
+    Thumbtack.repo().delete(struct)
+  end
+
   defp shift_image_upload(module, image_upload, callback) do
     module.image_shift_changeset(image_upload, image_upload.index_number - 1)
     |> Thumbtack.repo().update!()
@@ -55,11 +66,6 @@ defmodule Thumbtack.ImageUpload.Schema do
   end
 
   defp args_to_map(args), do: Enum.into(args, %{})
-
-  @doc false
-  def delete(struct) do
-    Thumbtack.repo().delete(struct)
-  end
 
   defmacro __using__(opts) do
     foreign_key = Keyword.fetch!(opts, :foreign_key)
@@ -139,8 +145,7 @@ defmodule Thumbtack.ImageUpload.Schema do
 
       @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
               Ecto.Changeset.t()
-      @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
-              Ecto.Changeset.t()
+
       @doc false
       def image_upload_changeset(struct, owner_id, args \\ %{}) do
         struct
@@ -148,6 +153,13 @@ defmodule Thumbtack.ImageUpload.Schema do
         |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
         |> validate_photo_uniqueness()
         |> maybe_validate_index_number()
+      end
+
+      @spec update_last_updated_at(struct :: struct()) :: Ecto.Changeset.t()
+      def update_last_updated_at(struct) do
+        struct
+        |> change()
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
       end
 
       def image_shift_changeset(struct, new_index) do

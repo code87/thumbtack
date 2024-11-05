@@ -183,6 +183,20 @@ defmodule Thumbtack.ImageUpload.Uploader do
 
   def put_to_storage({:error, term, uploader}), do: {:error, term, uploader}
 
+  @doc false
+  def update_last_updated_at(uploader_or_error)
+
+  def update_last_updated_at(%__MODULE__{} = uploader) do
+    %{module: module, image_upload: image_upload} = uploader
+
+    %__MODULE__{
+      uploader
+      | image_upload: Thumbtack.ImageUpload.Schema.update_last_updated_at(module, image_upload)
+    }
+  end
+
+  def update_last_updated_at({:error, term, uploader}), do: {:error, term, uploader}
+
   defp fetch_owner_id(%{id: owner_id} = owner) when is_struct(owner), do: owner_id
   defp fetch_owner_id(owner_id), do: owner_id
 
