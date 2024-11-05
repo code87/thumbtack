@@ -20,6 +20,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
   #   * For each style
   #     * put style image to storage
   #     * generate style image URL
+  #   * Update last updated at timestamp in image upload record
   #   * Cleanup
   #   * Return image upload and style urls
   #

@@ -26,6 +26,7 @@ defmodule MyApp.Repo.Migrations.CreateAlbumPhotos do
       add :id, :binary_id, primary_key: true
       add :album_id, references(:albums), null: false
       add :index_number, :integer, null: false, default: 0
+      add :last_updated_at, :utc_datetime, default: fragment("now()"), null: false
     end
 
     create unique_index(:album_photos, [:album_id, :index_number])
@@ -51,6 +52,7 @@ defmodule MyApp.AlbumPhoto do
   schema "album_photos" do
     belongs_to :album, MyApp.Album
     field :index_number, :integer, default: 0
+    field :last_updated_at, :utc_datetime
   end
 
   # you must implement this callback
