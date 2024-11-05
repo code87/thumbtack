@@ -48,16 +48,8 @@ defmodule Thumbtack.ImageUpload.Schema do
   end
 
   defp shift_image_upload(module, image_upload, callback) do
-    require Ecto.Query
-    import Ecto.Query
-
-    conditions = dynamic([module], module.id == ^image_upload.id)
-
-    from(module,
-      where: ^conditions,
-      update: [set: [index_number: fragment("index_number - 1")]]
-    )
-    |> Thumbtack.repo().update_all([])
+    module.image_shift_changeset(image_upload, image_upload.index_number - 1)
+    |> Thumbtack.repo().update!()
 
     callback.(image_upload.index_number)
   end
@@ -156,6 +148,13 @@ defmodule Thumbtack.ImageUpload.Schema do
         |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
         |> validate_photo_uniqueness()
         |> maybe_validate_index_number()
+      end
+
+      def image_shift_changeset(struct, new_index) do
+        struct
+        |> change()
+        |> put_change(:index_number, new_index)
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
       end
 
       defp put_changes(changeset, owner_id, args) do
