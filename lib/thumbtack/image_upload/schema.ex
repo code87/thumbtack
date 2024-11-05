@@ -32,36 +32,40 @@ defmodule Thumbtack.ImageUpload.Schema do
 
   def shift_indexes(module, owner_id, index, callback) do
     require Ecto.Query
+    import Ecto.Query
 
     conditions =
-      Ecto.Query.dynamic(
+      dynamic(
         [module],
         field(module, ^module.foreign_key()) == ^owner_id and module.index_number > ^index
       )
 
-    order_by = [asc: Ecto.Query.dynamic([module], module.index_number)]
+    order_by = [asc: dynamic([module], module.index_number)]
 
-    Ecto.Query.from(module, where: ^conditions, order_by: ^order_by)
+    from(module, where: ^conditions, order_by: ^order_by)
     |> Thumbtack.repo().all()
-    |> Enum.each(fn image_upload ->
-      conditions = Ecto.Query.dynamic([module], module.id == ^image_upload.id)
-
-      Ecto.Query.from(module,
-        where: ^conditions,
-        update: [set: [index_number: fragment("index_number - 1")]]
-      )
-      |> Thumbtack.repo().update_all([])
-
-      callback.(image_upload.index_number)
-    end)
+    |> Enum.each(&shift_image_upload(module, &1, callback))
   end
 
-  defp args_to_map(args), do: Enum.into(args, %{})
+  def update_last_updated_at(module, image_upload) do
+    image_upload
+    |> module.update_last_updated_at_changeset()
+    |> Thumbtack.repo().update!()
+  end
 
   @doc false
   def delete(struct) do
     Thumbtack.repo().delete(struct)
   end
+
+  defp shift_image_upload(module, image_upload, callback) do
+    module.image_shift_changeset(image_upload, image_upload.index_number - 1)
+    |> Thumbtack.repo().update!()
+
+    callback.(image_upload.index_number)
+  end
+
+  defp args_to_map(args), do: Enum.into(args, %{})
 
   defmacro __using__(opts) do
     foreign_key = Keyword.fetch!(opts, :foreign_key)
@@ -141,12 +145,28 @@ defmodule Thumbtack.ImageUpload.Schema do
 
       @spec image_upload_changeset(struct :: struct(), owner_id :: :id, args :: map()) ::
               Ecto.Changeset.t()
+
       @doc false
       def image_upload_changeset(struct, owner_id, args \\ %{}) do
         struct
         |> put_changes(owner_id, args)
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
         |> validate_photo_uniqueness()
         |> maybe_validate_index_number()
+      end
+
+      @spec update_last_updated_at_changeset(struct :: struct()) :: Ecto.Changeset.t()
+      def update_last_updated_at_changeset(struct) do
+        struct
+        |> change()
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
+      end
+
+      def image_shift_changeset(struct, new_index) do
+        struct
+        |> change()
+        |> put_change(:index_number, new_index)
+        |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
       end
 
       defp put_changes(changeset, owner_id, args) do

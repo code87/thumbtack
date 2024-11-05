@@ -25,6 +25,7 @@ defmodule MyApp.Repo.Migrations.CreateUserPhotos do
     create table("user_photos", primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :user_id, references(:users), null: false
+      add :last_updated_at, :utc_datetime, default: fragment("now()"), null: false
     end
 
     create unique_index(:user_photos, [:user_id])
@@ -47,6 +48,7 @@ defmodule MyApp.UserPhoto do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "user_photos" do
     belongs_to :user, MyApp.User
+    field :last_updated_at, :utc_datetime
   end
 
   # you must implement this callback

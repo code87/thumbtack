@@ -18,6 +18,7 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
     @primary_key {:id, :binary_id, autogenerate: true}
     schema "user_photos" do
       belongs_to(:user, User)
+      field(:last_updated_at, :utc_datetime)
     end
 
     @impl true

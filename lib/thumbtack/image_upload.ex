@@ -44,7 +44,9 @@ defmodule Thumbtack.ImageUpload do
 
   """
 
-  alias Thumbtack.ImageUpload.Uploader
+  alias Thumbtack.ImageUpload.{Uploader, Schema}
+
+  alias Thumbtack.Utils
 
   #
   # Types
@@ -156,6 +158,7 @@ defmodule Thumbtack.ImageUpload do
     |> Uploader.process_styles()
     |> Uploader.get_or_create_image_upload()
     |> Uploader.put_to_storage()
+    |> Uploader.update_last_updated_at()
     |> Uploader.verify()
   end
 
@@ -182,7 +185,8 @@ defmodule Thumbtack.ImageUpload do
 
   def get_path(module, owner_id, args) do
     case module.get_image_upload(owner_id, args) do
-      %{id: image_upload_id} ->
+      %{id: image_upload_id, last_updated_at: last_updated_at} ->
+        args = put_in(args, [:last_updated_at], last_updated_at)
         get_path(module, owner_id, image_upload_id, args)
 
       nil ->
@@ -204,7 +208,9 @@ defmodule Thumbtack.ImageUpload do
       module.image_upload_format()
       |> Thumbtack.Image.format_extension()
 
-    module.path_prefix(owner_id, image_upload_id, opts) <> extension
+    (module.path_prefix(owner_id, image_upload_id, opts) <>
+       extension)
+    |> maybe_append_timestamp(opts.last_updated_at)
   end
 
   @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
@@ -219,39 +225,20 @@ defmodule Thumbtack.ImageUpload do
   def delete(module, owner_id, args) do
     Ecto.Multi.new()
     |> Ecto.Multi.run(:image_upload, fn _repo, _changes ->
-      case module.get_image_upload(owner_id, fetch_options(args)) do
-        %{id: _id} = image_upload ->
-          {:ok, image_upload}
-
-        nil ->
-          {:error, :not_found}
-      end
+      get_image_upload(module, owner_id, args)
     end)
     |> Ecto.Multi.run(:delete, fn _repo, %{image_upload: image_upload} ->
       module.delete_image_upload(image_upload)
     end)
     |> Ecto.Multi.run(:delete_folder, fn _repo, %{delete: image_upload} ->
-      get_dir_name(module, owner_id, image_upload.id, args)
-      |> Thumbtack.storage().delete_folder()
-      |> case do
-        :ok -> {:ok, image_upload}
-        {:error, error} -> {:error, error}
-      end
+      delete_folder(module, owner_id, image_upload, args)
     end)
     |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
-      Thumbtack.ImageUpload.Schema.shift_indexes(
+      Schema.shift_indexes(
         module,
         owner_id,
-        Map.get(image_upload, :index_number, nil),
-        fn updated_image_index ->
-          original_dir_name =
-            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index})
-
-          new_dir_name =
-            get_dir_name(module, owner_id, image_upload.id, %{index: updated_image_index - 1})
-
-          Thumbtack.storage().rename_folder(original_dir_name, new_dir_name)
-        end
+        Map.get(image_upload, :index_number),
+        &rename_folder(module, owner_id, image_upload, &1)
       )
 
       {:ok, image_upload}
@@ -261,6 +248,35 @@ defmodule Thumbtack.ImageUpload do
       {:ok, %{delete: image_upload}} -> {:ok, image_upload}
       {:error, _step, reason, _changes} -> {:error, reason}
     end
+  end
+
+  defp get_image_upload(module, owner_id, args) do
+    case module.get_image_upload(owner_id, args) do
+      %{id: _id} = image_upload ->
+        {:ok, image_upload}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
+  defp delete_folder(module, owner_id, image_upload, args) do
+    get_dir_name(module, owner_id, image_upload.id, args)
+    |> Thumbtack.storage().delete_folder()
+    |> case do
+      :ok -> {:ok, image_upload}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  defp rename_folder(module, owner_id, image_upload, index) do
+    original_dir_name =
+      get_dir_name(module, owner_id, image_upload.id, %{index: index})
+
+    new_dir_name =
+      get_dir_name(module, owner_id, image_upload.id, %{index: index - 1})
+
+    Thumbtack.storage().rename_folder(original_dir_name, new_dir_name)
   end
 
   defp get_dir_name(module, owner_id, image_upload_id, args) do
@@ -273,8 +289,17 @@ defmodule Thumbtack.ImageUpload do
 
     %{
       index: Map.get(args_map, :index, 0),
-      style: Map.get(args_map, :style, :original)
+      style: Map.get(args_map, :style, :original),
+      last_updated_at: Map.get(args_map, :last_updated_at)
     }
+  end
+
+  defp maybe_append_timestamp(path, last_updated_at) do
+    if last_updated_at do
+      path <> "?v=" <> Utils.convert_date_time_to_timestamp(last_updated_at)
+    else
+      path
+    end
   end
 
   #
