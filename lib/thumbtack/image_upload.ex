@@ -46,6 +46,8 @@ defmodule Thumbtack.ImageUpload do
 
   alias Thumbtack.ImageUpload.Uploader
 
+  alias Thumbtack.ImageUpload.Schema
+
   #
   # Types
   #
@@ -232,7 +234,7 @@ defmodule Thumbtack.ImageUpload do
       delete_folder(module, owner_id, image_upload, args)
     end)
     |> Ecto.Multi.run(:shift_indexes, fn _repo, %{delete: image_upload} ->
-      Thumbtack.ImageUpload.Schema.shift_indexes(
+      Schema.shift_indexes(
         module,
         owner_id,
         Map.get(image_upload, :index_number),

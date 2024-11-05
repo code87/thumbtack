@@ -48,9 +48,14 @@ defmodule Thumbtack.ImageUpload.Schema do
   end
 
   def update_last_updated_at(module, image_upload) do
-    image_upload
-    |> module.update_last_updated_at()
-    |> Thumbtack.repo().update!()
+    res =
+      image_upload
+      |> module.update_last_updated_at_changeset()
+      |> Thumbtack.repo().update!()
+
+    IO.inspect(res)
+
+    res
   end
 
   @doc false
@@ -155,8 +160,8 @@ defmodule Thumbtack.ImageUpload.Schema do
         |> maybe_validate_index_number()
       end
 
-      @spec update_last_updated_at(struct :: struct()) :: Ecto.Changeset.t()
-      def update_last_updated_at(struct) do
+      @spec update_last_updated_at_changeset(struct :: struct()) :: Ecto.Changeset.t()
+      def update_last_updated_at_changeset(struct) do
         struct
         |> change()
         |> put_change(:last_updated_at, Thumbtack.Utils.timestamp())
