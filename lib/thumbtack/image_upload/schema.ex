@@ -44,17 +44,22 @@ defmodule Thumbtack.ImageUpload.Schema do
 
     from(module, where: ^conditions, order_by: ^order_by)
     |> Thumbtack.repo().all()
-    |> Enum.each(fn image_upload ->
-      conditions = dynamic([module], module.id == ^image_upload.id)
+    |> Enum.each(&shift_image_upload(module, &1, callback))
+  end
 
-      from(module,
-        where: ^conditions,
-        update: [set: [index_number: fragment("index_number - 1")]]
-      )
-      |> Thumbtack.repo().update_all([])
+  defp shift_image_upload(module, image_upload, callback) do
+    require Ecto.Query
+    import Ecto.Query
 
-      callback.(image_upload.index_number)
-    end)
+    conditions = dynamic([module], module.id == ^image_upload.id)
+
+    from(module,
+      where: ^conditions,
+      update: [set: [index_number: fragment("index_number - 1")]]
+    )
+    |> Thumbtack.repo().update_all([])
+
+    callback.(image_upload.index_number)
   end
 
   defp args_to_map(args), do: Enum.into(args, %{})
