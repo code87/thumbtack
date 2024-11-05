@@ -16,4 +16,14 @@ defmodule Thumbtack.Utils do
   def timestamp do
     DateTime.now!("Etc/UTC") |> DateTime.truncate(:second)
   end
+
+  @spec convert_date_time_to_timestamp(date_time :: DateTime.t()) :: String.t()
+  @doc """
+  Converts DateTime to timestamp. Returns timestamp as a string.
+  """
+  def convert_date_time_to_timestamp(date_time) do
+    date_time
+    |> DateTime.to_unix()
+    |> Integer.to_string()
+  end
 end

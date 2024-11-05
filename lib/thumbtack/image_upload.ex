@@ -44,9 +44,9 @@ defmodule Thumbtack.ImageUpload do
 
   """
 
-  alias Thumbtack.ImageUpload.Uploader
+  alias Thumbtack.ImageUpload.{Uploader, Schema}
 
-  alias Thumbtack.ImageUpload.Schema
+  alias Thumbtack.Utils
 
   #
   # Types
@@ -296,16 +296,10 @@ defmodule Thumbtack.ImageUpload do
 
   defp maybe_append_timestamp(path, last_updated_at) do
     if last_updated_at do
-      path <> "?v=" <> get_timestamp(last_updated_at)
+      path <> "?v=" <> Utils.convert_date_time_to_timestamp(last_updated_at)
     else
       path
     end
-  end
-
-  defp get_timestamp(last_used_at) do
-    last_used_at
-    |> DateTime.to_unix()
-    |> Integer.to_string()
   end
 
   #
