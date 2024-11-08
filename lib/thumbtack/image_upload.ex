@@ -210,7 +210,7 @@ defmodule Thumbtack.ImageUpload do
 
     (module.path_prefix(owner_id, image_upload_id, opts) <>
        extension)
-    |> maybe_append_timestamp(opts.last_updated_at)
+    |> Utils.maybe_append_timestamp(opts.last_updated_at)
   end
 
   @spec delete(module :: atom(), owner_or_id :: owner_or_id(), args :: map_or_keyword()) ::
@@ -292,14 +292,6 @@ defmodule Thumbtack.ImageUpload do
       style: Map.get(args_map, :style, :original),
       last_updated_at: Map.get(args_map, :last_updated_at)
     }
-  end
-
-  defp maybe_append_timestamp(path, last_updated_at) do
-    if last_updated_at do
-      path <> "?v=" <> Utils.convert_date_time_to_timestamp(last_updated_at)
-    else
-      path
-    end
   end
 
   #

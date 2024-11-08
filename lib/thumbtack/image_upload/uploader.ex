@@ -27,6 +27,7 @@ defmodule Thumbtack.ImageUpload.Uploader do
 
   alias Thumbtack.ImageUpload.{Style, Transformation, Schema}
   alias Vix.Vips
+  alias Thumbtack.Utils
 
   @type t :: %__MODULE__{
           module: atom(),
@@ -205,7 +206,9 @@ defmodule Thumbtack.ImageUpload.Uploader do
   def verify(%__MODULE__{image_upload: image_upload, state: state}) do
     urls =
       state
-      |> Enum.map(fn {style, %{:url => url}} -> {style, url} end)
+      |> Enum.map(fn {style, %{:url => url}} ->
+        {style, Utils.maybe_append_timestamp(url, image_upload.last_updated_at)}
+      end)
       |> Enum.into(%{})
 
     {:ok, image_upload, urls}

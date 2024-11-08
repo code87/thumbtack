@@ -17,11 +17,18 @@ defmodule Thumbtack.Utils do
     DateTime.now!("Etc/UTC") |> DateTime.truncate(:second)
   end
 
-  @spec convert_date_time_to_timestamp(date_time :: DateTime.t()) :: String.t()
+  @spec maybe_append_timestamp(url :: String.t(), date_time :: DateTime.t()) :: String.t()
   @doc """
-  Converts DateTime to timestamp. Returns timestamp as a string.
+  Appends timestamp to the URL if date_time is present.
   """
-  def convert_date_time_to_timestamp(date_time) do
+  def maybe_append_timestamp(url, date_time) do
+    case date_time do
+      nil -> url
+      _ -> "#{url}?v=#{convert_date_time_to_timestamp(date_time)}"
+    end
+  end
+
+  defp convert_date_time_to_timestamp(date_time) do
     date_time
     |> DateTime.to_unix()
     |> Integer.to_string()
