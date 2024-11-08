@@ -1,7 +1,7 @@
 defmodule Thumbtack.ImageUpload.UploaderTest do
   alias Thumbtack.ImageUpload.Style
   alias Thumbtack.ImageUpload.Uploader
-  alias Thumbtack.User
+  alias Thumbtack.{User, Utils}
 
   alias Vix.Vips
 
@@ -227,19 +227,33 @@ defmodule Thumbtack.ImageUpload.UploaderTest do
 
   describe "verify(result_or_error)" do
     test "wraps successful upload result" do
+      timestamp = Utils.timestamp()
+
       uploader =
         Uploader.new(
-          image_upload: %UserPhoto{id: "54321-abcde", user_id: 123},
+          image_upload: %UserPhoto{
+            id: "54321-abcde",
+            user_id: 123,
+            last_updated_at: timestamp
+          },
           state: %{
             original: %{url: "http://localhost:4000/uploads/123/54321-abcde-original.jpg"},
             thumb: %{url: "http://localhost:4000/uploads/123/54321-abcde-thumb.jpg"}
           }
         )
 
-      assert {:ok, %UserPhoto{id: "54321-abcde", user_id: 123},
+      expected_timestamp = DateTime.utc_now() |> DateTime.to_unix()
+
+      expected_original_url =
+        "http://localhost:4000/uploads/123/54321-abcde-original.jpg?v=#{expected_timestamp}"
+
+      expected_thumb_url =
+        "http://localhost:4000/uploads/123/54321-abcde-thumb.jpg?v=#{expected_timestamp}"
+
+      assert {:ok, %UserPhoto{id: "54321-abcde", user_id: 123, last_updated_at: ^timestamp},
               %{
-                original: "http://localhost:4000/uploads/123/54321-abcde-original.jpg",
-                thumb: "http://localhost:4000/uploads/123/54321-abcde-thumb.jpg"
+                original: ^expected_original_url,
+                thumb: ^expected_thumb_url
               }} = Uploader.verify(uploader)
     end
 

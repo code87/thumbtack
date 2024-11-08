@@ -1,5 +1,8 @@
 # Changelog
 
+### 0.0.6 (Nov 8 2024)
+* after upload, URLs were not being appended with timestamps. Fixed.
+
 ### 0.0.5 (Nov 5 2024)
 * timestamps added to image urls
 * multiple images now shift indexes on delete
