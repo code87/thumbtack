@@ -1,5 +1,8 @@
 # Changelog
 
+### 0.0.7 (Jan 20 2025)
+* after removing the last image, the parent folder was not being removed. Fixed.
+
 ### 0.0.6 (Nov 8 2024)
 * after upload, URLs were not being appended with timestamps. Fixed.
 
