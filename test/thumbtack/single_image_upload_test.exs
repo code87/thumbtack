@@ -78,6 +78,9 @@ defmodule Thumbtack.SingleImageUploadTest do
         UserPhoto.upload(user.id, "test/fixtures/photo-small.jpg", index: 0)
 
       assert {:ok, %UserPhoto{id: ^photo_id}} = UserPhoto.delete(user)
+
+      directory_path = Path.join(Thumbtack.storage().storage_path(), "/#{user.id}")
+      refute File.exists?(directory_path)
     end
 
     test "returns error tuple if image not found", %{user: user} do

@@ -123,8 +123,10 @@ defmodule Thumbtack.Storage.Local do
   def delete_folder(nil), do: {:error, :enoent}
 
   def delete_folder(path) do
-    validate_folder_on_delete(path)
+    Path.join(storage_path(), path)
+    |> validate_folder_on_delete()
     |> do_delete_folder()
+    |> maybe_delete_parent_folder()
   end
 
   @doc """
@@ -169,10 +171,8 @@ defmodule Thumbtack.Storage.Local do
   end
 
   defp validate_folder_on_delete(path) do
-    full_path = Path.join(storage_path(), path)
-
-    if File.exists?(full_path) && File.dir?(full_path) && full_path != storage_path() do
-      {:ok, full_path}
+    if File.exists?(path) && File.dir?(path) && path != storage_path() do
+      {:ok, path}
     else
       {:error, :enoent}
     end
@@ -189,11 +189,27 @@ defmodule Thumbtack.Storage.Local do
   defp do_delete_folder({:ok, folder_path}) do
     case File.rm_rf(folder_path) do
       {:ok, _} ->
-        :ok
+        {:ok, folder_path}
 
       {:error, reason, _} ->
         {:error, reason}
     end
+  end
+
+  defp maybe_delete_parent_folder({:error, reason}), do: {:error, reason}
+
+  defp maybe_delete_parent_folder({:ok, folder_path}) do
+    Path.dirname(folder_path)
+    |> validate_folder_on_delete()
+    |> case do
+      {:ok, path} ->
+        File.rmdir(path)
+
+      _ ->
+        nil
+    end
+
+    :ok
   end
 
   defp url_for_path(path), do: Path.join(root_url(), path)

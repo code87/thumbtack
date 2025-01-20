@@ -101,7 +101,7 @@ defmodule Thumbtack.MultipleImageUploadsTest do
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 1}} =
                AlbumPhoto.delete(album, %{index: 1})
 
-      refute File.exists?(directory_path)
+      refute Path.dirname(directory_path) |> File.exists?()
     end
 
     test "default index is 0", %{album: album} do
@@ -114,7 +114,7 @@ defmodule Thumbtack.MultipleImageUploadsTest do
       assert {:ok, %AlbumPhoto{id: ^photo_id, index_number: 0}} =
                AlbumPhoto.delete(album)
 
-      refute File.exists?(directory_path)
+      refute Path.dirname(directory_path) |> File.exists?()
     end
 
     test "returns error tuple if image not found", %{album: album} do
